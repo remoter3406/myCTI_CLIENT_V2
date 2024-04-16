@@ -52,15 +52,12 @@ namespace myCTI2
                 bool ret = false; // Default - no update needed
                 string Contents = "";
                 string Contents2 = "";
-                System.Net.WebClient myWebClient = new System.Net.WebClient(); // the webclient
                                                                                // File.AppendAllText(Application.StartupPath & "\trace.txt", Now & " Autoupdate read files" & vbCrLf, True)
                 try
                 {
                     try
                     {
-                        System.IO.StreamReader file = new System.IO.StreamReader(myWebClient.OpenRead(RemoteUri + sfile));
-                        Contents = file.ReadToEnd();
-                        file.Close();
+                        Contents = TOOL.DownloadWebpage(RemoteUri + sfile);
                     }
                     catch (Exception ex)
                     {
@@ -69,9 +66,7 @@ namespace myCTI2
 
                     try
                     {
-                        System.IO.StreamReader file2 = new System.IO.StreamReader(AssemblyName);
-                        Contents2 = file2.ReadToEnd();
-                        file2.Close();
+                        Contents2 = TOOL.File2String(AssemblyName);
                     }
                     catch (Exception ex)
                     {
@@ -80,8 +75,8 @@ namespace myCTI2
 
                     if (Contents != Contents2 & Contents != "")
                     {
-                        myWebClient.DownloadFile(RemoteUri + "geckofx64.zip", Application.StartupPath + @"\geckofx64.zip");
-                        myWebClient.DownloadFile(RemoteUri + "autoupdate.exe", Application.StartupPath + @"\autoupdate.exe");
+                        TOOL.DownloadFile(RemoteUri + "geckofx64.zip", Application.StartupPath + @"\geckofx64.zip",1000);
+                        TOOL.DownloadFile(RemoteUri + "autoupdate.exe", Application.StartupPath + @"\autoupdate.exe",1000);
 
                         string arg = Application.ExecutablePath + "|" + RemoteUri + "|" + sfile + "|" + Key + "|" + string.Join(" ", Environment.GetCommandLineArgs().Skip(1).ToArray());
                         Process.Start(Application.StartupPath + @"\autoupdate.exe", arg);

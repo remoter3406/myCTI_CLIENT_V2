@@ -165,7 +165,6 @@
     <Content Include="Firefox\mozavcodec.dll" />
     <Content Include="Firefox\mozavutil.dll" />
     <Content Include="Firefox\mozglue.dll" />
-    <Content Include="Firefox\msvcp140.dll" />
     <Content Include="Firefox\nss3.dll" />
     <Content Include="Firefox\nssckbi.dll" />
     <Content Include="Firefox\nssdbm3.dll" />
@@ -173,7 +172,6 @@
     <Content Include="Firefox\plugin-hang-ui.exe" />
     <Content Include="Firefox\qipcap64.dll" />
     <Content Include="Firefox\softokn3.dll" />
-    <Content Include="Firefox\vcruntime140.dll" />
     <Content Include="Firefox\xul.dll" />
     <Content Include="Resources\Backward.gif" />
     <Content Include="Resources\clockoff.gif" />

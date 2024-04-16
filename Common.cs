@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Media;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -174,6 +176,60 @@ namespace myCTI2
             }
             Debug.Print(DateTime.Now.ToLongTimeString() + ":" + "Mute on");
             isUnMute = false;
+        }
+
+        internal static string DownloadWebpage(string URL, int timeout = 500)
+        {
+            System.IO.Stream IoStream = null;
+            System.IO.StreamReader StrRead = null;
+            string web = "";
+            try
+            {
+                System.Net.HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
+                Request.Timeout = timeout;
+                
+                Request.UserAgent = "myGPS";
+                IoStream = Request.GetResponse().GetResponseStream();
+                StrRead = new System.IO.StreamReader(IoStream, System.Text.Encoding.Default);
+                web = StrRead.ReadToEnd();
+                StrRead.Close();
+                IoStream.Close();
+            }
+            catch (Exception ex)
+            {
+                errorx("DownloadWebpage ERROR Url=" + URL);
+                errorx("DownloadWebpage ERROR " + ex.Message);
+            }
+            return web;
+        }
+        internal static void String2File(string data, string file)
+        {
+            byte[] tmparray;
+            tmparray = Encoding.Default.GetBytes(data);
+            FileStream writex = new FileStream(file, FileMode.Create);
+            writex.Write(tmparray, 0, tmparray.Length);
+            writex.Close();
+        }
+        public static string File2String(string file)
+        {
+            int a = 0;
+            int dateilänge = 0;
+            string data = null;
+            byte[] tmparray = null;
+            FileStream readx = new FileStream(file, FileMode.Open);
+            dateilänge = Convert.ToInt32(readx.Length);
+            tmparray = new byte[dateilänge];
+            a = readx.Read(tmparray, 0, dateilänge);
+            readx.Close();
+            data = Encoding.Default.GetString(tmparray);
+            return data;
+        }
+
+        internal static void DownloadFile(string URL, string file, int timeout = 500)
+        {
+            string data = "";
+            data= DownloadWebpage(URL, timeout);
+            String2File(data, file);
         }
 
         internal static void debugx(string text)

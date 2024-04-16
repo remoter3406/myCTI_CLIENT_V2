@@ -141,11 +141,13 @@ namespace myCTI2
 
             if (server != "" & Debugger.IsAttached == false & dbgTest == false)
             {
-                // TOOL.debugx(0," Start Autoupdate")
+                TOOL.debugx(0, " Start Autoupdate");
                 if (MyAutoUpdate.AutoUpdate("http://" + server + "/autoupdate"))
+                {
                     System.Environment.Exit(0);
+                }
             }
-            // TOOL.debugx(0," Kein Autoupdate erforderlich")
+            TOOL.debugx(0, " Kein Autoupdate erforderlich");
 
             try
             {
@@ -299,8 +301,11 @@ namespace myCTI2
                 }
             }
             if (server == "" | (user != "" & password == ""))
-                System.Environment.Exit(0);
+            {
+                TOOL.debugx("Exit server=" + server + " user=" + user + " pwOK=" + (password!="").ToString());
 
+                System.Environment.Exit(0);
+            }
 
             /*
             string getUser = "";
@@ -350,16 +355,19 @@ namespace myCTI2
             string FirefoxPath64 = Application.StartupPath + @"\Firefox64\";
             string dllPath = Application.StartupPath + @"\";
             string zipdatei = dllPath + "geckofx64.zip";
-            
+            TOOL.debugx("checkFirefoxFiles dllpath=" + dllPath);
+            TOOL.debugx("checkFirefoxFiles zipdatei=" + zipdatei);
+
             if (!new DirectoryInfo(FirefoxPath64).Exists)
             {
-                WebClient myWebClient = new WebClient(); 
                 string RemoteUri = "http://" + server + "/autoupdate/";
-                myWebClient.DownloadFile(RemoteUri + "geckofx64.zip", Application.StartupPath + @"\geckofx64.zip");
+                TOOL.debugx("Download geckofx64.zip");
+                TOOL.DownloadFile(RemoteUri + "geckofx64.zip", zipdatei,30000);
             }
 
             if ((File.Exists(zipdatei)))
             {
+                TOOL.debugx("geckofx64.zip exists");
                 try
                 {
                     foreach (var myFile in Directory.GetFiles(dllPath, "*.dll"))
@@ -381,6 +389,10 @@ namespace myCTI2
                 
                 try { File.Delete(zipdatei);}
                 catch (Exception ex) { File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " checkFirefoxFiles error: " + ex.Message); }
+            }
+            else
+            {
+                TOOL.debugx("geckofx64.zip not exists, path=" + zipdatei); 
             }
         }
         public void getFile(string path, string filename)
