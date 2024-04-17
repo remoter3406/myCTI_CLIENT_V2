@@ -4,8 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
-using Gecko;
-using Gecko.Events;
+using Microsoft.Web.WebView2.Core;
 using System.Drawing;
 using System.Threading;
 
@@ -81,15 +80,16 @@ namespace myCTI2
             Directory.SetCurrentDirectory(appdir);
             try
             {
-                Xpcom.EnableProfileMonitoring = false;
-                Xpcom.Initialize("Firefox64");
+                webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
+                webView2.EnsureCoreWebView2Async();
             }
             catch (Exception ex)
             {
-                TOOL.errorx("Xpcom error: " + ex.Message );
+                TOOL.errorx("CTIMain init error: " + ex.Message );
                 TOOL.errorx("appdir=" + appdir);
             }
         }
+
         private void Form1_Load(System.Object sender, System.EventArgs e)
         {
             try
@@ -101,6 +101,8 @@ namespace myCTI2
                 File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN Form1_Load error:" + ex.Message + "\r");
             }
         }
+
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             try
@@ -126,13 +128,14 @@ namespace myCTI2
             {
                 server = CTIserver; user = CTIuser; password = CTIpassword; ssl = CTIssl; userx = CTIuserX; NTLM = CTIntlm;
 
-
+                /*
                 GeckoPreferences.User["network.negotiate-auth.trusted-uris"] = server;
                 GeckoPreferences.User["network.negotiate-auth.delegation-uris"] = server;
                 GeckoPreferences.User["network.automatic-ntlm-auth.trusted-uris"] = server;
 
                 GeckoPreferences.User["devtools.debugger.remote-enabled"] = true;
                 //GeckoPreferences.User["moz:webdriverClick"] = false;
+                */
             }
             catch (Exception ex)
             {
@@ -183,7 +186,7 @@ namespace myCTI2
             {
                 if (VB.Val(userx) == 0)
                 {
-                    geckoWebBrowser1.LoadHtml("<h1>Keine Anmeldung mit myCTI Benutzer '" + user + "' erfolgt</h1><BR>Ggf. nochmal Kontakte/Monitor aufrufen oder Username/Password ist falsch oder Probleme mit dem myCTI Server liegen vor");
+                    webView2.CoreWebView2.NavigateToString("<h1>Keine Anmeldung mit myCTI Benutzer '" + user + "' erfolgt</h1><BR>Ggf. nochmal Kontakte/Monitor aufrufen oder Username/Password ist falsch oder Probleme mit dem myCTI Server liegen vor");
                     NoValidUser?.Invoke(this, new myEventArgs(url));
                 }
                 else
@@ -193,18 +196,20 @@ namespace myCTI2
                     {
                         TOOL.debugx("navigate2 url=" + url);
                         Application.DoEvents();
-                        
-                        geckoWebBrowser1.Navigate(url);
+                        if (webView2 != null && webView2.CoreWebView2 != null)
+                        {
+                            webView2.CoreWebView2.Navigate(url);
+                        }
                     }
                     else
                     {
-                        GeckoWebBrowser browser = new GeckoWebBrowser();
+                        Microsoft.Web.WebView2.WinForms.WebView2 browser = new Microsoft.Web.WebView2.WinForms.WebView2();
                         Form f = new Form();
                         f.Icon = this.Icon;
                         f.Size = new Size(1500, 900);
                         f.Controls.Add(browser);
                         f.Controls[0].Size = new Size(1484, 900);
-                        browser.Navigate(url);
+                        browser.CoreWebView2.Navigate(url);
                         f.Show();
                     }
                 }
@@ -305,17 +310,17 @@ namespace myCTI2
         private void buttonBack_Click(object sender, EventArgs e)
         {
             // zurück
-            geckoWebBrowser1.GoBack();
+           webView2.GoBack();
         }
         private void buttonForward_Click(object sender, EventArgs e)
         {
             // vor
-            geckoWebBrowser1.GoForward();
+          webView2.GoForward();
         }
         private void buttonUpdate_Click(object sender, EventArgs e)
         {
             // refresh
-            navigate(VB.Mid(geckoWebBrowser1.Url.PathAndQuery,1));
+           webView2.Reload();
         }
         private void buttonSpeaker_Click(object sender, EventArgs e)
         {
@@ -361,52 +366,68 @@ namespace myCTI2
         }
         #endregion
 
-        #region " Gecko "
-        private void geckoWebBrowser1_ObserveHttpModifyRequest(object sender, GeckoObserveHttpModifyRequestEventArgs e)
+        #region " CoreWebView2 "
+        private void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
-            try
-            {
-                byte[] authData = System.Text.UnicodeEncoding.UTF8.GetBytes(user + ":" + password);
-                CredentialCache mycache = new CredentialCache();
-                if (NTLM == false)
-                    e.Channel.SetRequestHeader("Authorization", "Basic " + Convert.ToBase64String(authData),true);
-            }
-            catch (Exception ex)
-            {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN SetHeader error:" + ex.Message + "\r");
-            }
+            webView2.CoreWebView2.ServerCertificateErrorDetected += CoreWebView2_ServerCertificateErrorDetected;
+            webView2.CoreWebView2.ContainsFullScreenElementChanged += CoreWebView2_ContainsFullScreenElementChanged;
+            webView2.CoreWebView2.BasicAuthenticationRequested += CoreWebView2_BasicAuthenticationRequested;
+            webView2.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
+            webView2.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
+            webView2.CoreWebView2.ClientCertificateRequested += CoreWebView2_ClientCertificateRequested;
+            webView2.CoreWebView2.PermissionRequested += CoreWebView2_PermissionRequested;
         }
-        private void geckoWebBrowser1_NSSError(object sender, GeckoNSSErrorEventArgs e)
+        private void CoreWebView2_ServerCertificateErrorDetected(object sender, CoreWebView2ServerCertificateErrorDetectedEventArgs e)
         {
-            try
-            {
-                if (e.Message.ToLower().Contains("certificate"))
-                {
-                    CertOverrideService.GetService().RememberValidityOverride(e.Uri, e.Certificate,CertOverride.Mismatch| CertOverride.Time| CertOverride.Untrusted, false);
-                    e.Handled = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN geckoWebBrowser1_NSSError error:" + ex.Message + "\r");
-            }
+            CoreWebView2Certificate certificate = e.ServerCertificate;
+            e.Action = CoreWebView2ServerCertificateErrorAction.AlwaysAllow;
         }
-        private void geckoWebBrowser1_Navigated(object sender, GeckoNavigatedEventArgs e)
+ 
+        private void CoreWebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             try
             {
-                Debug.Print("Navigated:" + e.Uri.AbsoluteUri);
-                Navigated?.Invoke(this,new myEventArgs(e.Uri.AbsoluteUri));
+                if(e.HttpStatusCode != 200) Debug.Print("NavigationError:" + e.HttpStatusCode.ToString());
+
+                Debug.Print("Navigated:" + webView2.Source.ToString());
+                Navigated?.Invoke(this,new myEventArgs(webView2.Source.ToString()));
+                
             }
             catch (Exception ex)
             {
                 File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN GeckoWebBrowser1_Navigated error:" + ex.Message + "\r");
             }
         }
-        private void geckoWebBrowser1_NavigationError(object sender, GeckoNavigationErrorEventArgs e)
+
+        private void CoreWebView2_BasicAuthenticationRequested(object sender, CoreWebView2BasicAuthenticationRequestedEventArgs e)
         {
-            Debug.Print("NavigationError:" + e.ErrorCode.ToString());
+            try
+            {
+                if (NTLM == false)
+                {
+                    e.Response.UserName = user;
+                    e.Response.Password = password;
+                }
+            }
+            catch (Exception ex)
+            {
+                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN SetHeader error:" + ex.Message + "\r");
+            }
         }
+        private void CoreWebView2_PermissionRequested(object sender, CoreWebView2PermissionRequestedEventArgs e)
+        {
+        }
+        private void CoreWebView2_ClientCertificateRequested(object sender, CoreWebView2ClientCertificateRequestedEventArgs e)
+        {
+        }
+        private void CoreWebView2_ContainsFullScreenElementChanged(object sender, object e)
+        {
+        }
+        private void CoreWebView2_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
+        {
+        }
+
+
         #endregion
 
         #region " Timer "
@@ -420,8 +441,9 @@ namespace myCTI2
                     tix = 1;
                     if (this.WindowState == FormWindowState.Maximized | this.WindowState == FormWindowState.Normal)
                     {
-                        if (VB.Left(geckoWebBrowser1.Url.PathAndQuery.ToUpper(), 11) == "/MONITOR.PL")
-                            geckoWebBrowser1.Reload();
+                        string url = webView2.Source.ToString();
+                        if (VB.Left(url.ToUpper(), 11) == "/MONITOR.PL")
+                            webView2.Reload();
                     }
                 }
             }

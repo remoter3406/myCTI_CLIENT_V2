@@ -31,7 +31,6 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CTIMain));
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.geckoWebBrowser1 = new Gecko.GeckoWebBrowser();
             this.buttonHelp = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.buttonShowNumber = new System.Windows.Forms.Button();
@@ -48,6 +47,8 @@
             this.labelRDP = new System.Windows.Forms.Label();
             this.checkBoxKampagne = new System.Windows.Forms.CheckBox();
             this.checkBoxSecondPhone = new System.Windows.Forms.CheckBox();
+            this.webView2 = new Microsoft.Web.WebView2.WinForms.WebView2();
+            ((System.ComponentModel.ISupportInitialize)(this.webView2)).BeginInit();
             this.SuspendLayout();
             // 
             // timer1
@@ -55,23 +56,6 @@
             this.timer1.Enabled = true;
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
-            // geckoWebBrowser1
-            // 
-            this.geckoWebBrowser1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.geckoWebBrowser1.ConsoleMessageEventReceivesConsoleLogCalls = false;
-            this.geckoWebBrowser1.FrameEventsPropagateToMainWindow = false;
-            this.geckoWebBrowser1.Location = new System.Drawing.Point(0, 31);
-            this.geckoWebBrowser1.Name = "geckoWebBrowser1";
-            this.geckoWebBrowser1.Size = new System.Drawing.Size(1817, 944);
-            this.geckoWebBrowser1.TabIndex = 0;
-            this.geckoWebBrowser1.UseHttpActivityObserver = true;
-            this.geckoWebBrowser1.Navigated += new System.EventHandler<Gecko.GeckoNavigatedEventArgs>(this.geckoWebBrowser1_Navigated);
-            this.geckoWebBrowser1.NavigationError += new System.EventHandler<Gecko.Events.GeckoNavigationErrorEventArgs>(this.geckoWebBrowser1_NavigationError);
-            this.geckoWebBrowser1.ObserveHttpModifyRequest += new System.EventHandler<Gecko.GeckoObserveHttpModifyRequestEventArgs>(this.geckoWebBrowser1_ObserveHttpModifyRequest);
-            this.geckoWebBrowser1.NSSError += new System.EventHandler<Gecko.Events.GeckoNSSErrorEventArgs>(this.geckoWebBrowser1_NSSError);
             // 
             // buttonHelp
             // 
@@ -272,12 +256,27 @@
             this.checkBoxSecondPhone.Visible = false;
             this.checkBoxSecondPhone.CheckedChanged += new System.EventHandler(this.checkBoxSecondPhone_CheckedChanged);
             // 
+            // webView2
+            // 
+            this.webView2.AllowExternalDrop = true;
+            this.webView2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.webView2.CreationProperties = null;
+            this.webView2.DefaultBackgroundColor = System.Drawing.Color.White;
+            this.webView2.Location = new System.Drawing.Point(0, 31);
+            this.webView2.Name = "webView2";
+            this.webView2.Size = new System.Drawing.Size(1820, 956);
+            this.webView2.TabIndex = 18;
+            this.webView2.ZoomFactor = 1D;
+            // 
             // CTIMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1820, 987);
+            this.Controls.Add(this.webView2);
             this.Controls.Add(this.checkBoxSecondPhone);
             this.Controls.Add(this.checkBoxKampagne);
             this.Controls.Add(this.labelRDP);
@@ -294,12 +293,12 @@
             this.Controls.Add(this.buttonShowNumber);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.buttonHelp);
-            this.Controls.Add(this.geckoWebBrowser1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "CTIMain";
-            this.Text = "myCTI Client V1.34";
+            this.Text = "myCTI Client V2.0.0";
             this.SizeChanged += new System.EventHandler(this.CTIMain_SizeChanged);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.CTIMain_KeyDown);
+            ((System.ComponentModel.ISupportInitialize)(this.webView2)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -308,7 +307,6 @@
         #endregion
 
         private System.Windows.Forms.Timer timer1;
-        private Gecko.GeckoWebBrowser geckoWebBrowser1;
         private System.Windows.Forms.Button buttonHelp;
         private System.Windows.Forms.Button buttonShowNumber;
         private System.Windows.Forms.Button buttonHideNumber;
@@ -325,5 +323,6 @@
         private System.Windows.Forms.Label labelRDP;
         private System.Windows.Forms.CheckBox checkBoxKampagne;
         private System.Windows.Forms.CheckBox checkBoxSecondPhone;
+        private Microsoft.Web.WebView2.WinForms.WebView2 webView2;
     }
 }

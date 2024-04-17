@@ -23,6 +23,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Net.NetworkInformation;
 using System.Management;
+using static System.Net.WebRequestMethods;
 
 namespace myCTI2
 {
@@ -123,7 +124,8 @@ namespace myCTI2
         public void init()
         {
             myTimer.Tick += new EventHandler(myTimer_Tick);
- 
+            myTimer.Interval = 500;
+
             vbaRegOwnExePathSave();
             // dbgTest = True
 
@@ -135,7 +137,7 @@ namespace myCTI2
 
             checkCred();
 
-            checkFirefoxFiles();
+            checkWebview2Files();
 
             //CommandLine = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).ToArray());
 
@@ -147,7 +149,7 @@ namespace myCTI2
                     System.Environment.Exit(0);
                 }
             }
-            TOOL.debugx(0, " Kein Autoupdate erforderlich");
+            TOOL.debugx(0, " Kein Autoupdate erforderlich oder gerade erfolgt");
 
             try
             {
@@ -157,7 +159,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setUDP error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setUDP error: " + ex.Message);
             }
 
             try
@@ -167,7 +169,7 @@ namespace myCTI2
             }
             catch (Exception ex2)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setAutostart error: " + ex2.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setAutostart error: " + ex2.Message);
             }
 
             try // IM vor CT starten (NoStatus)
@@ -176,7 +178,7 @@ namespace myCTI2
             }
             catch (Exception ex2)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_IM_pos() error: " + ex2.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_IM_pos() error: " + ex2.Message);
             }
 
             try
@@ -185,7 +187,7 @@ namespace myCTI2
             }
             catch (Exception ex2)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_CT_pos() error: " + ex2.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_CT_pos() error: " + ex2.Message);
             }
 
             try
@@ -194,7 +196,7 @@ namespace myCTI2
             }
             catch (Exception ex2)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_AU_pos() error: " + ex2.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_AU_pos() error: " + ex2.Message);
             }
 
             try
@@ -203,7 +205,7 @@ namespace myCTI2
             }
             catch (Exception ex2)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_ShutdownDummy() error: " + ex2.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_ShutdownDummy() error: " + ex2.Message);
             }
 
 
@@ -213,7 +215,7 @@ namespace myCTI2
             }
             catch (Exception ex2)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() SystemEvents.SessionSwitch error: " + ex2.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() SystemEvents.SessionSwitch error: " + ex2.Message);
             }
 
             Init_contex_menu();
@@ -222,14 +224,12 @@ namespace myCTI2
             setAudio();
  
             Tray.Visible = true;
-            myTimer.Interval = 500;
-            myTimer.Enabled = true;
             string x = RegLoad("udp_window_x1", "0");
             string y = RegLoad("udp_window_y1", "0");
             string s = RegLoad("server", "0");
             int x1 = VB.Val(x);
             int y1 = VB.Val(y);
-            File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " Init server=" + s + " udp_window_x1=" +x + "|" + x1.ToString() + " udp_window_y1=" +y + "|" + y1.ToString() + "\r\n");
+               System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " Init server=" + s + " udp_window_x1=" +x + "|" + x1.ToString() + " udp_window_y1=" +y + "|" + y1.ToString() + "\r\n");
 
             if ( x1 == 0 & y1 == 0)
             {
@@ -238,6 +238,8 @@ namespace myCTI2
                 AU2.ShowPosition();
                 AU.ShowPosition();
             }
+            myTimer.Enabled = true;
+
         }
         private void Init_tray()
         {
@@ -349,50 +351,71 @@ namespace myCTI2
                 user = userbak;
             }
         }
-        public void checkFirefoxFiles()
+        public void checkWebview2Files()
         {
-            string FirefoxPath = Application.StartupPath + @"\Firefox\";
-            string FirefoxPath64 = Application.StartupPath + @"\Firefox64\";
+            string Path1 = Application.StartupPath + @"\runtimes\";
+            string Path2 = Application.StartupPath + @"\myCTI.exe.WebView2\";
             string dllPath = Application.StartupPath + @"\";
-            string zipdatei = dllPath + "geckofx64.zip";
+            string zipdatei = dllPath + "webview.zip";
             TOOL.debugx("checkFirefoxFiles dllpath=" + dllPath);
             TOOL.debugx("checkFirefoxFiles zipdatei=" + zipdatei);
 
-            if (!new DirectoryInfo(FirefoxPath64).Exists)
+            //remove Gecko
+            try
+            {
+                Directory.Delete(Application.StartupPath + @"\Firefox\", true);
+            }
+            catch { }
+
+            try
+            {
+                Directory.Delete(Application.StartupPath + @"\Firefox64\", true);
+            }
+            catch { }
+            try
+            {
+                System.IO.File.Delete(Application.StartupPath + @"\gecko*.*");
+            }
+            catch { }
+
+
+            if (!new DirectoryInfo(Path1).Exists | !new DirectoryInfo(Path2).Exists)
             {
                 string RemoteUri = "http://" + server + "/autoupdate/";
-                TOOL.debugx("Download geckofx64.zip");
-                TOOL.DownloadFile(RemoteUri + "geckofx64.zip", zipdatei,30000);
+                TOOL.debugx("Download webview.zip");
+                TOOL.DownloadFile(RemoteUri + "webview.zip", zipdatei, 30000);
             }
 
-            if ((File.Exists(zipdatei)))
+            if (System.IO.File.Exists(zipdatei))
             {
-                TOOL.debugx("geckofx64.zip exists");
+                TOOL.debugx("webview.zip exists");
                 try
                 {
                     foreach (var myFile in Directory.GetFiles(dllPath, "*.dll"))
-                        File.Delete(myFile);
+                        System.IO.File.Delete(myFile);
                 }
                 catch { }
                 try
                 {
-                    Directory.Delete(FirefoxPath, true);
+                    Directory.Delete(Path1, true);
                 }
                 catch { }
                 try
                 {
-                    Directory.Delete(FirefoxPath64, true);
+                    Directory.Delete(Path2, true);
                 }
                 catch { }
-                try { ZipFile.ExtractToDirectory(zipdatei, dllPath);}
-                catch (Exception ex) {File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " checkFirefoxFiles unzip error: " + ex.Message);}
-                
-                try { File.Delete(zipdatei);}
-                catch (Exception ex) { File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " checkFirefoxFiles error: " + ex.Message); }
-            }
+
+                try { ZipFile.ExtractToDirectory(zipdatei, dllPath); }
+                catch (Exception ex) { System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " checkFirefoxFiles unzip error: " + ex.Message); }
+
+                try { System.IO.File.Delete(zipdatei); }
+                catch (Exception ex) { System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " checkFirefoxFiles error: " + ex.Message); }
+
+             }
             else
             {
-                TOOL.debugx("geckofx64.zip not exists, path=" + zipdatei); 
+                TOOL.debugx("webview.zip not exists, path=" + zipdatei);
             }
         }
         public void getFile(string path, string filename)
@@ -404,7 +427,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " getFile error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " getFile error: " + ex.Message);
             }
         }
         
@@ -421,7 +444,7 @@ namespace myCTI2
             if (webOK == false)
                 return;
             userx = VB.Val(getWeb("SetUDP?status=on" + status + "&version=" + CT.Text));
-            File.AppendAllText(Application.StartupPath + @"\trace.txt","\r\n" + DateTime.Now.ToLongTimeString() + " version=" + CT.Text + "\r\n\r\n");
+            System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt","\r\n" + DateTime.Now.ToLongTimeString() + " version=" + CT.Text + "\r\n\r\n");
 
             if (webOK == false) userx = -1;
 
@@ -501,7 +524,7 @@ namespace myCTI2
             AU3.Hide();
             int x1 = VB.Val(RegLoad("udp_window_x1", "0"));
             int y1 = VB.Val(RegLoad("udp_window_y1", "0"));
-            File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " Set_AU_Pos udp_window_x1=" + x1.ToString() + " udp_window_y1=" + y1.ToString() + "\r\n");
+            System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " Set_AU_Pos udp_window_x1=" + x1.ToString() + " udp_window_y1=" + y1.ToString() + "\r\n");
 
             if (x1 != 0 & y1 != 0)
                 AU.Location = new Point(x1, y1);
@@ -586,7 +609,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " checkLockUnlock error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " checkLockUnlock error: " + ex.Message);
             }
         }
 
@@ -615,7 +638,7 @@ namespace myCTI2
                 }
                 catch (Exception ex)
                 {
-                    File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " udpClient_UDP_receive error: " + ex.Message);
+                    System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " udpClient_UDP_receive error: " + ex.Message);
                 }
             }
         }
@@ -654,7 +677,7 @@ namespace myCTI2
             }
             catch (AccessViolationException ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " myTimer_Tick error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " myTimer_Tick error: " + ex.Message);
             }
             catch
             {
@@ -691,11 +714,11 @@ namespace myCTI2
                 if (erg.Length > 0 & erg.Length < 3)
                 {
                     RDP = rdpName;
-                    File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " myTimer_Tick SetUDP?RDP=" + erg + "  rdpname=" + RDP);
+                    System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " myTimer_Tick SetUDP?RDP=" + erg + "  rdpname=" + RDP);
                 }
                 else
                 {
-                    File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " myTimer_Tick SetUDP?RDP=" + erg);
+                    System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " myTimer_Tick SetUDP?RDP=" + erg);
                 }
             }
         }
@@ -815,7 +838,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " SD_Hotkey error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " SD_Hotkey error: " + ex.Message);
             }
         }
         private void SD_SpaceHotkey(object sender, EventArgs e)
@@ -846,7 +869,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_ShowIM error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_ShowIM error: " + ex.Message);
             }
         }
         private void CT_Navigated(object sender, myEventArgs e)
@@ -862,7 +885,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_Navigated error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_Navigated error: " + ex.Message);
             }
         }
         private void CT_DialNumber(object sender, myEventArgs e)
@@ -873,7 +896,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_DialNumber error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_DialNumber error: " + ex.Message);
             }
         }
         private void CT_ReleaseButton(object sender, EventArgs e)
@@ -884,7 +907,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_ReleaseButton error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_ReleaseButton error: " + ex.Message);
             }
         }
         private void CT_SpeakerButton(object sender, EventArgs e)
@@ -895,7 +918,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_SpeakerButton error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_SpeakerButton error: " + ex.Message);
             }
         }
         private void CT_SearchNumber(object sender, myEventArgs e)
@@ -906,12 +929,12 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_SearchNumber error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_SearchNumber error: " + ex.Message);
             }
         }
         private void CT_NoValidUser(object sender, myEventArgs e)
         {
-              File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " TrayContext CT_NoValidUser user= " + e.Text);
+              System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " TrayContext CT_NoValidUser user= " + e.Text);
         }
         private void CT_ZeitplanButton(object sender, EventArgs e)
         {
@@ -1091,7 +1114,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " ReceiveUDP error: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " ReceiveUDP error: " + ex.Message);
             }
         }
         private void ShowSettings()
@@ -1200,7 +1223,7 @@ namespace myCTI2
                     webOK = false;
 
                 if (noErrFile == false)
-                    File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " GetURL error:" + ex.Message + "\r");
+                    System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " GetURL error:" + ex.Message + "\r");
             }
             TOOL.debugx(1, "getWeb NTML=" + NTLM.ToString() + " responselen=" + responseFromServer.Length.ToString());
             TOOL.debugx(2, "getWeb NTML=" + NTLM.ToString() + " response=" + responseFromServer);
@@ -1379,7 +1402,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setAutostart error1: " + ex.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setAutostart error1: " + ex.Message);
             }
 
             try
@@ -1391,7 +1414,7 @@ namespace myCTI2
             }
             catch (Exception ex2)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setAutostart error2: " + ex2.Message);
+                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setAutostart error2: " + ex2.Message);
             }
         }
         private void delAutostart()
