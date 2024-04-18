@@ -403,19 +403,9 @@ namespace myCTI2
 
         private void CoreWebView2_BasicAuthenticationRequested(object sender, CoreWebView2BasicAuthenticationRequestedEventArgs e)
         {
-            try
-            {
-                if (NTLM == false)
-                {
-                    e.Response.UserName = user;
-                    e.Response.Password = password;
-                }
-                
-            }
-            catch (Exception ex)
-            {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN SetHeader error:" + ex.Message + "\r");
-            }
+            // wird nicht bei SSO aufgerufen, kann also immer ausgefüllt werden
+            e.Response.UserName = user;
+            e.Response.Password = password;
         }
         private void CoreWebView2_PermissionRequested(object sender, CoreWebView2PermissionRequestedEventArgs e)
         {
