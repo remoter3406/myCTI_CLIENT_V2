@@ -44,13 +44,6 @@ namespace myCTI2
             {
                 groupBoxVDS.Visible = false;
             }
-            if (isNTLM)
-            {
-                textBoxUser.Visible = false;
-                textBoxPassword.Visible = false;
-                labelUser.Visible = false;
-                labelPassword.Visible = false;
-            }
 
             textBoxServerIP.Text = server;
             textBoxUser.Text = user;
@@ -197,12 +190,10 @@ namespace myCTI2
             else
                 RegSave("ssl", "http");
 
-            if (!isNTLM)
-            {
-                RegSave("user", textBoxUser.Text);
-                if (textBoxPassword.Text != new string('*', textBoxPassword.Text.Length))
+            RegSave("user", textBoxUser.Text);
+            if (textBoxPassword.Text != new string('*', textBoxPassword.Text.Length))
                     RegSave("password", textBoxPassword.Text);
-            }
+
             Cursor.Current = Cursors.Default;
 
             this.Close();

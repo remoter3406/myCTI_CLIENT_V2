@@ -404,8 +404,11 @@ namespace myCTI2
         private void CoreWebView2_BasicAuthenticationRequested(object sender, CoreWebView2BasicAuthenticationRequestedEventArgs e)
         {
             // wird nicht bei SSO aufgerufen, kann also immer ausgefüllt werden
-            e.Response.UserName = user;
-            e.Response.Password = password;
+            if (user != "")
+            {
+                e.Response.UserName = user;
+                e.Response.Password = password;
+            }
         }
         private void CoreWebView2_PermissionRequested(object sender, CoreWebView2PermissionRequestedEventArgs e)
         {

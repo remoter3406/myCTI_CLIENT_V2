@@ -59,6 +59,12 @@
             this.radioButtonVDS2 = new System.Windows.Forms.RadioButton();
             this.radioButtonVDS1 = new System.Windows.Forms.RadioButton();
             this.groupBoxServer = new System.Windows.Forms.GroupBox();
+            this.textBoxDeflect3 = new System.Windows.Forms.TextBox();
+            this.textBoxDeflect2 = new System.Windows.Forms.TextBox();
+            this.textBoxDeflect1 = new System.Windows.Forms.TextBox();
+            this.label17 = new System.Windows.Forms.Label();
+            this.label16 = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.checkBoxMailActive = new System.Windows.Forms.CheckBox();
             this.textBoxMailAddress = new System.Windows.Forms.TextBox();
@@ -87,12 +93,7 @@
             this.radioButtonHttp = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
             this.textBoxServerIP = new System.Windows.Forms.TextBox();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label16 = new System.Windows.Forms.Label();
-            this.label17 = new System.Windows.Forms.Label();
-            this.textBoxDeflect1 = new System.Windows.Forms.TextBox();
-            this.textBoxDeflect2 = new System.Windows.Forms.TextBox();
-            this.textBoxDeflect3 = new System.Windows.Forms.TextBox();
+            this.label18 = new System.Windows.Forms.Label();
             this.groupBoxVDS.SuspendLayout();
             this.groupBoxServer.SuspendLayout();
             this.groupBoxSettings.SuspendLayout();
@@ -409,6 +410,57 @@
             this.groupBoxServer.TabStop = false;
             this.groupBoxServer.Text = "myCTI Server Funktionen";
             // 
+            // textBoxDeflect3
+            // 
+            this.textBoxDeflect3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxDeflect3.Location = new System.Drawing.Point(635, 93);
+            this.textBoxDeflect3.Name = "textBoxDeflect3";
+            this.textBoxDeflect3.Size = new System.Drawing.Size(90, 20);
+            this.textBoxDeflect3.TabIndex = 75;
+            // 
+            // textBoxDeflect2
+            // 
+            this.textBoxDeflect2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxDeflect2.Location = new System.Drawing.Point(472, 93);
+            this.textBoxDeflect2.Name = "textBoxDeflect2";
+            this.textBoxDeflect2.Size = new System.Drawing.Size(90, 20);
+            this.textBoxDeflect2.TabIndex = 74;
+            // 
+            // textBoxDeflect1
+            // 
+            this.textBoxDeflect1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.textBoxDeflect1.Location = new System.Drawing.Point(328, 93);
+            this.textBoxDeflect1.Name = "textBoxDeflect1";
+            this.textBoxDeflect1.Size = new System.Drawing.Size(90, 20);
+            this.textBoxDeflect1.TabIndex = 73;
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(632, 75);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(89, 13);
+            this.label17.TabIndex = 72;
+            this.label17.Text = "Weiterleiten Ziel3";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(469, 75);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(89, 13);
+            this.label16.TabIndex = 71;
+            this.label16.Text = "Weiterleiten Ziel2";
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(325, 75);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(89, 13);
+            this.label12.TabIndex = 70;
+            this.label12.Text = "Weiterleiten Ziel1";
+            // 
             // label11
             // 
             this.label11.AutoSize = true;
@@ -588,6 +640,7 @@
             // 
             // groupBoxWebSettings
             // 
+            this.groupBoxWebSettings.Controls.Add(this.label18);
             this.groupBoxWebSettings.Controls.Add(this.labelPassword);
             this.groupBoxWebSettings.Controls.Add(this.textBoxPassword);
             this.groupBoxWebSettings.Controls.Add(this.labelUser);
@@ -606,7 +659,7 @@
             // labelPassword
             // 
             this.labelPassword.AutoSize = true;
-            this.labelPassword.Location = new System.Drawing.Point(6, 107);
+            this.labelPassword.Location = new System.Drawing.Point(6, 118);
             this.labelPassword.Name = "labelPassword";
             this.labelPassword.Size = new System.Drawing.Size(53, 13);
             this.labelPassword.TabIndex = 42;
@@ -615,7 +668,7 @@
             // textBoxPassword
             // 
             this.textBoxPassword.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxPassword.Location = new System.Drawing.Point(150, 104);
+            this.textBoxPassword.Location = new System.Drawing.Point(150, 115);
             this.textBoxPassword.Name = "textBoxPassword";
             this.textBoxPassword.Size = new System.Drawing.Size(124, 20);
             this.textBoxPassword.TabIndex = 43;
@@ -623,7 +676,7 @@
             // labelUser
             // 
             this.labelUser.AutoSize = true;
-            this.labelUser.Location = new System.Drawing.Point(6, 74);
+            this.labelUser.Location = new System.Drawing.Point(6, 90);
             this.labelUser.Name = "labelUser";
             this.labelUser.Size = new System.Drawing.Size(80, 13);
             this.labelUser.TabIndex = 40;
@@ -632,7 +685,7 @@
             // textBoxUser
             // 
             this.textBoxUser.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxUser.Location = new System.Drawing.Point(150, 71);
+            this.textBoxUser.Location = new System.Drawing.Point(150, 87);
             this.textBoxUser.Name = "textBoxUser";
             this.textBoxUser.Size = new System.Drawing.Size(124, 20);
             this.textBoxUser.TabIndex = 41;
@@ -676,56 +729,14 @@
             this.textBoxServerIP.Size = new System.Drawing.Size(124, 20);
             this.textBoxServerIP.TabIndex = 37;
             // 
-            // label12
+            // label18
             // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(325, 75);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(89, 13);
-            this.label12.TabIndex = 70;
-            this.label12.Text = "Weiterleiten Ziel1";
-            // 
-            // label16
-            // 
-            this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(469, 75);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(89, 13);
-            this.label16.TabIndex = 71;
-            this.label16.Text = "Weiterleiten Ziel2";
-            // 
-            // label17
-            // 
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(632, 75);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(89, 13);
-            this.label17.TabIndex = 72;
-            this.label17.Text = "Weiterleiten Ziel3";
-            // 
-            // textBoxDeflect1
-            // 
-            this.textBoxDeflect1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxDeflect1.Location = new System.Drawing.Point(328, 93);
-            this.textBoxDeflect1.Name = "textBoxDeflect1";
-            this.textBoxDeflect1.Size = new System.Drawing.Size(90, 20);
-            this.textBoxDeflect1.TabIndex = 73;
-            // 
-            // textBoxDeflect2
-            // 
-            this.textBoxDeflect2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxDeflect2.Location = new System.Drawing.Point(472, 93);
-            this.textBoxDeflect2.Name = "textBoxDeflect2";
-            this.textBoxDeflect2.Size = new System.Drawing.Size(90, 20);
-            this.textBoxDeflect2.TabIndex = 74;
-            // 
-            // textBoxDeflect3
-            // 
-            this.textBoxDeflect3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxDeflect3.Location = new System.Drawing.Point(635, 93);
-            this.textBoxDeflect3.Name = "textBoxDeflect3";
-            this.textBoxDeflect3.Size = new System.Drawing.Size(90, 20);
-            this.textBoxDeflect3.TabIndex = 75;
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(152, 72);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(103, 13);
+            this.label18.TabIndex = 44;
+            this.label18.Text = "Leer lassen bei SSO";
             // 
             // Settings
             // 
@@ -819,5 +830,6 @@
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Label label18;
     }
 }
