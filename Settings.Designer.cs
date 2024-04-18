@@ -85,6 +85,7 @@
             this.label8 = new System.Windows.Forms.Label();
             this.textBoxDoubleKlick = new System.Windows.Forms.TextBox();
             this.groupBoxWebSettings = new System.Windows.Forms.GroupBox();
+            this.label18 = new System.Windows.Forms.Label();
             this.labelPassword = new System.Windows.Forms.Label();
             this.textBoxPassword = new System.Windows.Forms.TextBox();
             this.labelUser = new System.Windows.Forms.Label();
@@ -93,7 +94,6 @@
             this.radioButtonHttp = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
             this.textBoxServerIP = new System.Windows.Forms.TextBox();
-            this.label18 = new System.Windows.Forms.Label();
             this.groupBoxVDS.SuspendLayout();
             this.groupBoxServer.SuspendLayout();
             this.groupBoxSettings.SuspendLayout();
@@ -656,6 +656,15 @@
             this.groupBoxWebSettings.TabStop = false;
             this.groupBoxWebSettings.Text = "myCTI Server Verbindungs Einstellungen";
             // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Location = new System.Drawing.Point(147, 70);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(103, 13);
+            this.label18.TabIndex = 44;
+            this.label18.Text = "Leer lassen bei SSO";
+            // 
             // labelPassword
             // 
             this.labelPassword.AutoSize = true;
@@ -728,15 +737,6 @@
             this.textBoxServerIP.Name = "textBoxServerIP";
             this.textBoxServerIP.Size = new System.Drawing.Size(124, 20);
             this.textBoxServerIP.TabIndex = 37;
-            // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(152, 72);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(103, 13);
-            this.label18.TabIndex = 44;
-            this.label18.Text = "Leer lassen bei SSO";
             // 
             // Settings
             // 
