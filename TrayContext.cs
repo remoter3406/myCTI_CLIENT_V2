@@ -240,6 +240,24 @@ namespace myCTI2
             }
             myTimer.Enabled = true;
 
+            //remove Gecko
+            try
+            {
+                Directory.Delete(Application.StartupPath + @"\Firefox\", true);
+            }
+            catch { }
+
+            try
+            {
+                Directory.Delete(Application.StartupPath + @"\Firefox64\", true);
+            }
+            catch { }
+            try
+            {
+                System.IO.File.Delete(Application.StartupPath + @"\gecko*.*");
+            }
+            catch { }
+
         }
         private void Init_tray()
         {
@@ -359,25 +377,6 @@ namespace myCTI2
             string zipdatei = dllPath + "webview.zip";
             TOOL.debugx("checkFirefoxFiles dllpath=" + dllPath);
             TOOL.debugx("checkFirefoxFiles zipdatei=" + zipdatei);
-
-            //remove Gecko
-            try
-            {
-                Directory.Delete(Application.StartupPath + @"\Firefox\", true);
-            }
-            catch { }
-
-            try
-            {
-                Directory.Delete(Application.StartupPath + @"\Firefox64\", true);
-            }
-            catch { }
-            try
-            {
-                System.IO.File.Delete(Application.StartupPath + @"\gecko*.*");
-            }
-            catch { }
-
 
             if (!new DirectoryInfo(Path1).Exists | !new DirectoryInfo(Path2).Exists)
             {

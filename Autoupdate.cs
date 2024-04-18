@@ -75,7 +75,7 @@ namespace myCTI2
 
                     if (Contents != Contents2 & Contents != "")
                     {
-                        TOOL.DownloadFile(RemoteUri + "geckofx64.zip", Application.StartupPath + @"\geckofx64.zip",1000);
+                        TOOL.DownloadFile(RemoteUri + "webview.zip", Application.StartupPath + @"\webview.zip",1000);
                         TOOL.DownloadFile(RemoteUri + "autoupdate.exe", Application.StartupPath + @"\autoupdate.exe",1000);
 
                         string arg = Application.ExecutablePath + "|" + RemoteUri + "|" + sfile + "|" + Key + "|" + string.Join(" ", Environment.GetCommandLineArgs().Skip(1).ToArray());

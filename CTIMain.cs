@@ -82,6 +82,7 @@ namespace myCTI2
             {
                 webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
                 webView2.EnsureCoreWebView2Async();
+                
             }
             catch (Exception ex)
             {
@@ -376,6 +377,7 @@ namespace myCTI2
             webView2.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
             webView2.CoreWebView2.ClientCertificateRequested += CoreWebView2_ClientCertificateRequested;
             webView2.CoreWebView2.PermissionRequested += CoreWebView2_PermissionRequested;
+
         }
         private void CoreWebView2_ServerCertificateErrorDetected(object sender, CoreWebView2ServerCertificateErrorDetectedEventArgs e)
         {
@@ -408,6 +410,7 @@ namespace myCTI2
                     e.Response.UserName = user;
                     e.Response.Password = password;
                 }
+                
             }
             catch (Exception ex)
             {

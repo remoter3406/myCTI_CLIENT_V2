@@ -295,7 +295,7 @@
             this.Controls.Add(this.buttonHelp);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "CTIMain";
-            this.Text = "myCTI Client V2.0.0";
+            this.Text = "myCTI Client V2.0.1";
             this.SizeChanged += new System.EventHandler(this.CTIMain_SizeChanged);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.CTIMain_KeyDown);
             ((System.ComponentModel.ISupportInitialize)(this.webView2)).EndInit();
