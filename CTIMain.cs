@@ -389,10 +389,26 @@ namespace myCTI2
         {
             try
             {
-                if(e.HttpStatusCode != 200) Debug.Print("NavigationError:" + e.HttpStatusCode.ToString());
+                if (e.HttpStatusCode == 0) //navigate to html String
+                {
+                    Debug.Print("Navigation html String:" + e.HttpStatusCode.ToString());
+                }
+                else if (e.HttpStatusCode == 401) 
+                {
+                    Debug.Print("NavigationError:" + e.HttpStatusCode.ToString());
+                    webView2.CoreWebView2.NavigateToString("<h1>Http Fehler '" + e.HttpStatusCode.ToString() + "'</h1><BR>Username/Password sind falsch oder ggf. Servername statt IP Adresse eintragen bei Single Sign On (SSO mit Windows Anmeldung) ");
 
-                Debug.Print("Navigated:" + webView2.Source.ToString());
-                Navigated?.Invoke(this,new myEventArgs(webView2.Source.ToString()));
+                }
+                else if (e.HttpStatusCode != 200)
+                {
+                    Debug.Print("NavigationError:" + e.HttpStatusCode.ToString());
+                    webView2.CoreWebView2.NavigateToString("<h1>Http Fehler '" + e.HttpStatusCode.ToString() + "'</h1>");
+                }
+                else
+                {
+                    Debug.Print("Navigated:" + webView2.Source.ToString());
+                    Navigated?.Invoke(this, new myEventArgs(webView2.Source.ToString()));
+                }
                 
             }
             catch (Exception ex)
