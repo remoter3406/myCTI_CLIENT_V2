@@ -370,6 +370,8 @@ namespace myCTI2
         #region " CoreWebView2 "
         private void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
+            System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", "\r\n" + DateTime.Now.ToLongTimeString() + "  WebView2_CoreWebView2InitializationCompleted start" + "\r\n\r\n");
+
             webView2.CoreWebView2.ServerCertificateErrorDetected += CoreWebView2_ServerCertificateErrorDetected;
             webView2.CoreWebView2.ContainsFullScreenElementChanged += CoreWebView2_ContainsFullScreenElementChanged;
             webView2.CoreWebView2.BasicAuthenticationRequested += CoreWebView2_BasicAuthenticationRequested;
@@ -381,6 +383,7 @@ namespace myCTI2
         }
         private void CoreWebView2_ServerCertificateErrorDetected(object sender, CoreWebView2ServerCertificateErrorDetectedEventArgs e)
         {
+            System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", "\r\n" + DateTime.Now.ToLongTimeString() + "  CoreWebView2_ServerCertificateErrorDetected " + e.ErrorStatus + "\r\n\r\n");
             CoreWebView2Certificate certificate = e.ServerCertificate;
             e.Action = CoreWebView2ServerCertificateErrorAction.AlwaysAllow;
         }
@@ -419,6 +422,7 @@ namespace myCTI2
 
         private void CoreWebView2_BasicAuthenticationRequested(object sender, CoreWebView2BasicAuthenticationRequestedEventArgs e)
         {
+            System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", "\r\n" + DateTime.Now.ToLongTimeString() + "  CoreWebView2_BasicAuthenticationRequested start" + "\r\n\r\n");
             // wird nicht bei SSO aufgerufen, kann also immer ausgefüllt werden
             if (user != "")
             {

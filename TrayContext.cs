@@ -1,35 +1,39 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Security.Cryptography.X509Certificates;
-using System.Net.Security;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Management;
+using System.Media;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Security;
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
 using System.Windows.Forms;
-using System.Media;
-using System.Runtime.InteropServices;
-
-using System.Net.Sockets;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Security.Principal;
-using System.Net.NetworkInformation;
-using System.Management;
 using static System.Net.WebRequestMethods;
+using File = System.IO.File;
 
 namespace myCTI2
 {
     class TrayContext : ApplicationContext
     {
         #region " DLL "
+        [DllImport("shell32.dll", EntryPoint = "ShellExecute")]
+        public static extern long ShellExecute(int hwnd, string cmd, string file, string param1, string param2, int swmode);
+
         private const int APPCOMMAND_VOLUME_MUTE = 0x80000;
         private const int WM_APPCOMMAND = 0x319;
 
@@ -94,7 +98,6 @@ namespace myCTI2
 
         private ShutDownDummy SD;
 
-        private Autoupdate MyAutoUpdate = new Autoupdate();
         private string server;
         private string user;
         private string password;
@@ -137,19 +140,7 @@ namespace myCTI2
 
             checkCred();
 
-            checkWebview2Files();
-
             //CommandLine = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).ToArray());
-
-            if (server != "" & Debugger.IsAttached == false & dbgTest == false)
-            {
-                TOOL.debugx(0, " Start Autoupdate");
-                if (MyAutoUpdate.AutoUpdate("http://" + server + "/autoupdate"))
-                {
-                    System.Environment.Exit(0);
-                }
-            }
-            TOOL.debugx(0, " Kein Autoupdate erforderlich oder gerade erfolgt");
 
             try
             {
@@ -157,66 +148,18 @@ namespace myCTI2
                 udpClient.UDPreceive += udpClient_UDP_receive;
                 udpClient.start(31312);
             }
-            catch (Exception ex)
-            {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setUDP error: " + ex.Message);
-            }
+            catch (Exception ex) {debugerror("trayApp NEW() setUDP error: " + ex.Message);}
 
-            try
-            {
-                if (Debugger.IsAttached == false)
-                    setAutostart();
-            }
-            catch (Exception ex2)
-            {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setAutostart error: " + ex2.Message);
-            }
+            // IM vor CT starten (NoStatus)
+            try {Set_IM_pos();} catch (Exception ex2) {debugerror("trayApp NEW() Set_IM_pos() error: " + ex2.Message);}
 
-            try // IM vor CT starten (NoStatus)
-            {
-                Set_IM_pos();
-            }
-            catch (Exception ex2)
-            {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_IM_pos() error: " + ex2.Message);
-            }
+            try {Set_CT_pos();} catch (Exception ex2) {debugerror("trayApp NEW() Set_CT_pos() error: " + ex2.Message);}
 
-            try
-            {
-                Set_CT_pos();
-            }
-            catch (Exception ex2)
-            {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_CT_pos() error: " + ex2.Message);
-            }
+            try {Set_AU_pos();} catch (Exception ex2) {debugerror("trayApp NEW() Set_AU_pos() error: " + ex2.Message);}
 
-            try
-            {
-                Set_AU_pos();
-            }
-            catch (Exception ex2)
-            {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_AU_pos() error: " + ex2.Message);
-            }
+            try {Set_ShutdownDummy();} catch (Exception ex2) {debugerror("trayApp NEW() Set_ShutdownDummy() error: " + ex2.Message);}
 
-            try
-            {
-                Set_ShutdownDummy();
-            }
-            catch (Exception ex2)
-            {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() Set_ShutdownDummy() error: " + ex2.Message);
-            }
-
-
-            try
-            {
-                SystemEvents.SessionSwitch += checkLockUnlock;
-            }
-            catch (Exception ex2)
-            {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() SystemEvents.SessionSwitch error: " + ex2.Message);
-            }
+            try {SystemEvents.SessionSwitch += checkLockUnlock;} catch (Exception ex2) {debugerror("trayApp NEW() SystemEvents.SessionSwitch error: " + ex2.Message);}
 
             Init_contex_menu();
             Init_tray();
@@ -229,7 +172,7 @@ namespace myCTI2
             string s = RegLoad("server", "0");
             int x1 = VB.Val(x);
             int y1 = VB.Val(y);
-               System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " Init server=" + s + " udp_window_x1=" +x + "|" + x1.ToString() + " udp_window_y1=" +y + "|" + y1.ToString() + "\r\n");
+               debugtrace(" Init server=" + s + " udp_window_x1=" +x + "|" + x1.ToString() + " udp_window_y1=" +y + "|" + y1.ToString());
 
             if ( x1 == 0 & y1 == 0)
             {
@@ -240,24 +183,58 @@ namespace myCTI2
             }
             myTimer.Enabled = true;
 
-            //remove Gecko
+            //tSIP konfig setzen
             try
             {
-                Directory.Delete(Application.StartupPath + @"\Firefox\", true);
-            }
-            catch { }
+                string sipuser = RegLoadSipNst();
+                string sippwd = RegLoadSipPwd();
+                string userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string tSipPath = userProfilePath + @"\documents\cti\tSIP\";
+                string linkPath = userProfilePath + @"\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\tSIP.lnk";
 
-            try
-            {
-                Directory.Delete(Application.StartupPath + @"\Firefox64\", true);
-            }
-            catch { }
-            try
-            {
-                System.IO.File.Delete(Application.StartupPath + @"\gecko*.*");
-            }
-            catch { }
+                if (sipuser != "" & sipuser.ToLower().IndexOf("keine") < 0)
+                {
+                    string json = TOOL.File2String(tSipPath + "tSIP.json");
+                    json = newJson(json, "user","\""+ sipuser + "\"");
+                    json = newJson(json, "pwd", "\"" + sippwd + "\"");
+                    json = newJson(json, "audio_codecs", "[ \"G722/8000/1\", \"PCMU/8000/1\", \"PCMA/8000/1\" ]");
+                    json = newJson(json, "mediaenc", "\"srtp\"");
+                    json = newJson(json, "outbound1", "\"192.168.111.111:5061\"");
+                    json = newJson(json, "outbound1Transport", "2");
+                    json = newJson(json, "reg_expires", "300");
+                    json = newJson(json, "reg_server", "\"192.168.111.111:5061\"");
+                    json = newJson(json, "transport", "2");
+                    json = newJson(json, "DecodeUtfDisplayToAnsi", "true");
+                    json = newJson(json, "Url", "\"https://google.de/search?q=[number]\"\r\n}");
+                    json = newJson(json, "language", "\"de_DE\"");
+                    json = newJson(json, "AppExpandedWidth", "714");
+                    json = newJson(json, "AlwaysOnTop", "true");
+                    json = newJson(json, "HideTools", "true");
+                    json = newJson(json, "SingleInstance", "true");
+                    json = newJson(json, "SpeedDialVisible", "true");
+                    json = newJson(json, "StartMinimizedToTray", "true");
+                    json = newJson(json, "XBtnMinimize", "true");
+                    json = newJson(json, "autoAnswerCallInfo ", "true");
 
+                    TOOL.String2File(json, tSipPath + "tSIP.json");
+
+                    //ShortcutCreator.Create(linkPath, tSipPath + "tSIP.exe", "Startet meine App", tSipPath);
+                }
+            }
+            catch { }
+        }
+
+        private string newJson(string json, string item, string wert)
+        {
+            int links = json.IndexOf("\"" + item + "\"");
+            if (links == -1) return json;
+
+            links = json.IndexOf(": ", links) + 2;
+            int rechts = json.IndexOf(",\r", links);
+            string slinks = VB.Left(json, links);
+            string srechts = VB.Mid(json, rechts);
+
+            return slinks + wert + srechts;
         }
         private void Init_tray()
         {
@@ -367,54 +344,6 @@ namespace myCTI2
             {
                 NTLM = false;
                 user = userbak;
-            }
-        }
-        public void checkWebview2Files()
-        {
-            string Path1 = Application.StartupPath + @"\runtimes\";
-            string Path2 = Application.StartupPath + @"\myCTI.exe.WebView2\";
-            string dllPath = Application.StartupPath + @"\";
-            string zipdatei = dllPath + "webview.zip";
-            TOOL.debugx("checkFirefoxFiles dllpath=" + dllPath);
-            TOOL.debugx("checkFirefoxFiles zipdatei=" + zipdatei);
-
-            if (!new DirectoryInfo(Path1).Exists | !new DirectoryInfo(Path2).Exists)
-            {
-                string RemoteUri = "http://" + server + "/autoupdate/";
-                TOOL.debugx("Download webview.zip");
-                TOOL.DownloadFile(RemoteUri + "webview.zip", zipdatei, 30000);
-            }
-
-            if (System.IO.File.Exists(zipdatei))
-            {
-                TOOL.debugx("webview.zip exists");
-                try
-                {
-                    foreach (var myFile in Directory.GetFiles(dllPath, "*.dll"))
-                        System.IO.File.Delete(myFile);
-                }
-                catch { }
-                try
-                {
-                    Directory.Delete(Path1, true);
-                }
-                catch { }
-                try
-                {
-                    Directory.Delete(Path2, true);
-                }
-                catch { }
-
-                try { ZipFile.ExtractToDirectory(zipdatei, dllPath); }
-                catch (Exception ex) { System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " checkFirefoxFiles unzip error: " + ex.Message); }
-
-                try { System.IO.File.Delete(zipdatei); }
-                catch (Exception ex) { System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " checkFirefoxFiles error: " + ex.Message); }
-
-             }
-            else
-            {
-                TOOL.debugx("webview.zip not exists, path=" + zipdatei);
             }
         }
         public void getFile(string path, string filename)
@@ -587,6 +516,14 @@ namespace myCTI2
             { }
         }
 
+        private void debugtrace(string msg)
+        {
+            System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " " + msg + "\r\n");
+        }
+        private void debugerror(string msg)
+        {
+            System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " " + msg + "\r\n");
+        }
 
         #endregion
 
@@ -655,15 +592,6 @@ namespace myCTI2
                     checkServer();
                     checkRdp();
 
-                    if (zeit == "23:00:0")
-                    {
-                        if (Debugger.IsAttached == false)
-                        {
-                            if (MyAutoUpdate.AutoUpdate("http://" + server + "/autoupdate", true))
-                                // TOOL.debugx(0, " Update needed shut down now")
-                                ShutDown();
-                        }
-                    }
                 }
 
                 checkBlinken();
@@ -676,7 +604,7 @@ namespace myCTI2
             }
             catch (AccessViolationException ex)
             {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " myTimer_Tick error: " + ex.Message);
+                debugerror(" myTimer_Tick error: " + ex.Message);
             }
             catch
             {
@@ -1047,10 +975,12 @@ namespace myCTI2
                     {
                         if (Debugger.IsAttached == false)
                         {
-                            bool update = MyAutoUpdate.AutoUpdate("http://" + server + "/autoupdate", true);
-                            TOOL.debugx(0, " Update needed shut down now=" + update.ToString() + "\n" );
-                            if (update)
-                                ShutDown();
+                            //start startGPO.exe
+                            string startexe = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Documents\\CTI\\startGPO.exe";
+                            if (File.Exists(startexe))
+                            {
+                                ShellExecute(0, "open", startexe, "", "", 5);
+                            }
                         }
                     }
                     //else if (cmd == "9")
@@ -1224,8 +1154,12 @@ namespace myCTI2
                 if (noErrFile == false)
                     System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " GetURL error:" + ex.Message + "\r");
             }
-            TOOL.debugx(1, "getWeb NTML=" + NTLM.ToString() + " responselen=" + responseFromServer.Length.ToString());
-            TOOL.debugx(2, "getWeb NTML=" + NTLM.ToString() + " response=" + responseFromServer);
+            if(responseFromServer.Length > 20)
+                TOOL.debugx(1, "getWeb NTML=" + NTLM.ToString() + " responselen=" + responseFromServer.Length.ToString());
+            else
+                TOOL.debugx(1, "getWeb NTML=" + NTLM.ToString() + " response=" + responseFromServer);
+
+            //TOOL.debugx(2, "getWeb NTML=" + NTLM.ToString() + " response=" + responseFromServer);
 
             return responseFromServer;
         }
@@ -1362,6 +1296,22 @@ namespace myCTI2
         private string RegLoadOwnNst()
         {
             string var = @"SECURITY\User" + userx.ToString() + @"\MonitorDefNST";
+            string tmp = getWeb("action?cmd=getreg&var=" + HttpUtility.UrlEncode(var));
+            if (VB.Right(tmp, 2) == "\r\n")
+                tmp = VB.Left(tmp, tmp.Length - 2);
+            return tmp;
+        }
+        private string RegLoadSipNst()
+        {
+            string var = @"SECURITY\User" + userx.ToString() + @"\SipNst";
+            string tmp = getWeb("action?cmd=getreg&var=" + HttpUtility.UrlEncode(var));
+            if (VB.Right(tmp, 2) == "\r\n")
+                tmp = VB.Left(tmp, tmp.Length - 2);
+            return tmp;
+        }
+        private string RegLoadSipPwd()
+        {
+            string var = @"SECURITY\User" + userx.ToString() + @"\SipPwd";
             string tmp = getWeb("action?cmd=getreg&var=" + HttpUtility.UrlEncode(var));
             if (VB.Right(tmp, 2) == "\r\n")
                 tmp = VB.Left(tmp, tmp.Length - 2);
@@ -1883,5 +1833,66 @@ namespace myCTI2
         #endregion
     }
 
- 
+    public class ShortcutCreator
+    {
+        // COM-Schnittstellen Definitionen (Win32)
+        [ComImport]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [Guid("000214F9-0000-0000-C000-000000000046")]
+        private interface IShellLink
+        {
+            void GetPath([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszFile, int cchMaxPath, IntPtr pfd, int fFlags);
+            void GetIDList(out IntPtr ppidl);
+            void SetIDList(IntPtr pidl);
+            void GetDescription([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszName, int cchMaxName);
+            void SetDescription([MarshalAs(UnmanagedType.LPWStr)] string pszName);
+            void GetWorkingDirectory([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszDir, int cchMaxPath);
+            void SetWorkingDirectory([MarshalAs(UnmanagedType.LPWStr)] string pszDir);
+            void GetArguments([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszArgs, int cchMaxPath);
+            void SetArguments([MarshalAs(UnmanagedType.LPWStr)] string pszArgs);
+            void GetHotkey(out short pwHotkey);
+            void SetHotkey(short wHotkey);
+            void GetShowCmd(out int piShowCmd);
+            void SetShowCmd(int iShowCmd);
+            void GetIconLocation([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszIconPath, int cchIconPath, out int piIcon);
+            void SetIconLocation([MarshalAs(UnmanagedType.LPWStr)] string pszIconPath, int iIcon);
+            void SetRelativePath([MarshalAs(UnmanagedType.LPWStr)] string pszPathRel, int dwReserved);
+            void Resolve(IntPtr hwnd, int fFlags);
+            void SetPath([MarshalAs(UnmanagedType.LPWStr)] string pszFile);
+        }
+
+        [ComImport]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [Guid("0000010b-0000-0000-C000-000000000046")]
+        private interface IPersistFile
+        {
+            void GetClassID(out Guid pClassID);
+            void IsDirty();
+            void Load([MarshalAs(UnmanagedType.LPWStr)] string pszFileName, int dwMode);
+            void Save([MarshalAs(UnmanagedType.LPWStr)] string pszFileName, bool fRemember);
+            void SaveCompleted([MarshalAs(UnmanagedType.LPWStr)] string pszFileName);
+            void GetCurFile([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder ppszFileName);
+        }
+
+        // ShellLink CoClass
+        [ComImport]
+        [Guid("00021401-0000-0000-C000-000000000046")]
+        private class ShellLink { }
+
+        public static void Create(string linkPath, string targetPath, string description, string workingDirectory)
+        {
+            // 1. Instanz erstellen
+            var shellLink = (IShellLink)new ShellLink();
+
+            // 2. Eigenschaften setzen
+            shellLink.SetPath(targetPath);
+            shellLink.SetDescription(description);
+            shellLink.SetWorkingDirectory(workingDirectory);
+
+            // 3. Als .lnk Datei speichern
+            var persistFile = (IPersistFile)shellLink;
+            persistFile.Save(linkPath, true);
+        }
+    }
+
 }
