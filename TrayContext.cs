@@ -976,7 +976,7 @@ namespace myCTI2
                         if (Debugger.IsAttached == false)
                         {
                             //start startGPO.exe
-                            string startexe = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Documents\\CTI\\startGPO.exe";
+                            string startexe = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Documents\\CTI\\myStartGPO.exe";
                             if (File.Exists(startexe))
                             {
                                 ShellExecute(0, "open", startexe, "", "", 5);
