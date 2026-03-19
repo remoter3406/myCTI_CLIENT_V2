@@ -183,59 +183,9 @@ namespace myCTI2
             }
             myTimer.Enabled = true;
 
-            //tSIP konfig setzen
-            try
-            {
-                string sipuser = RegLoadSipNst();
-                string sippwd = RegLoadSipPwd();
-                string userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                string tSipPath = userProfilePath + @"\documents\cti\tSIP\";
-                string linkPath = userProfilePath + @"\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\tSIP.lnk";
-
-                if (sipuser != "" & sipuser.ToLower().IndexOf("keine") < 0)
-                {
-                    string json = TOOL.File2String(tSipPath + "tSIP.json");
-                    json = newJson(json, "user","\""+ sipuser + "\"");
-                    json = newJson(json, "pwd", "\"" + sippwd + "\"");
-                    json = newJson(json, "audio_codecs", "[ \"G722/8000/1\", \"PCMU/8000/1\", \"PCMA/8000/1\" ]");
-                    json = newJson(json, "mediaenc", "\"srtp\"");
-                    json = newJson(json, "outbound1", "\"192.168.111.111:5061\"");
-                    json = newJson(json, "outbound1Transport", "2");
-                    json = newJson(json, "reg_expires", "300");
-                    json = newJson(json, "reg_server", "\"192.168.111.111:5061\"");
-                    json = newJson(json, "transport", "2");
-                    json = newJson(json, "DecodeUtfDisplayToAnsi", "true");
-                    json = newJson(json, "Url", "\"https://google.de/search?q=[number]\"\r\n}");
-                    json = newJson(json, "language", "\"de_DE\"");
-                    json = newJson(json, "AppExpandedWidth", "714");
-                    json = newJson(json, "AlwaysOnTop", "true");
-                    json = newJson(json, "HideTools", "true");
-                    json = newJson(json, "SingleInstance", "true");
-                    json = newJson(json, "SpeedDialVisible", "true");
-                    json = newJson(json, "StartMinimizedToTray", "true");
-                    json = newJson(json, "XBtnMinimize", "true");
-                    json = newJson(json, "autoAnswerCallInfo ", "true");
-
-                    TOOL.String2File(json, tSipPath + "tSIP.json");
-
-                    //ShortcutCreator.Create(linkPath, tSipPath + "tSIP.exe", "Startet meine App", tSipPath);
-                }
-            }
-            catch { }
+ 
         }
 
-        private string newJson(string json, string item, string wert)
-        {
-            int links = json.IndexOf("\"" + item + "\"");
-            if (links == -1) return json;
-
-            links = json.IndexOf(": ", links) + 2;
-            int rechts = json.IndexOf(",\r", links);
-            string slinks = VB.Left(json, links);
-            string srechts = VB.Mid(json, rechts);
-
-            return slinks + wert + srechts;
-        }
         private void Init_tray()
         {
             Tray = new NotifyIcon();
@@ -1091,14 +1041,6 @@ namespace myCTI2
         }
         private void ShutDown()
         {
-            try
-            {
-                if (Debugger.IsAttached == false)
-                    setAutostart();
-            }
-            catch
-            {
-            }
             getWeb("SetUDP?status=off" + status);
             CT.destroy();
             IM.destroy();
@@ -1335,45 +1277,6 @@ namespace myCTI2
         {
             string var = @"CTI\" + "user" + userx.ToString() + @"\CTI" + key;
             getWeb("action?cmd=setreg&var=" + HttpUtility.UrlEncode(var, System.Text.Encoding.Default) + "&wert=" + HttpUtility.UrlEncode(wert, System.Text.Encoding.Default));
-        }
-        private void setAutostart()
-        {
-            if (dbgTest == true)
-                return;
-
-            Microsoft.Win32.RegistryKey regKey;
-            try
-            {
-                regKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
-                string path = "\"" + Application.StartupPath + @"\" + System.Reflection.Assembly.GetEntryAssembly().GetName().Name + ".exe\" /background";
-                regKey.SetValue("myCTI", path);
-                regKey.Close();
-            }
-            catch (Exception ex)
-            {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setAutostart error1: " + ex.Message);
-            }
-
-            try
-            {
-                byte[] byt = new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-                regKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", true);
-                regKey.SetValue("myCTI", byt);
-                regKey.Close();
-            }
-            catch (Exception ex2)
-            {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " trayApp NEW() setAutostart error2: " + ex2.Message);
-            }
-        }
-        private void delAutostart()
-        {
-            Microsoft.Win32.RegistryKey regKey;
-            regKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
-            string path = regKey.GetValue("myCTI").ToString();
-            if (path != "")
-                regKey.DeleteValue("myCTI", false);
-            regKey.Close();
         }
         private bool PWcheck(string text)
         {
