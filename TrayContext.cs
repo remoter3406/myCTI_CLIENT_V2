@@ -79,9 +79,7 @@ namespace myCTI2
         private NotifyIcon Tray;
         private ContextMenuStrip MainMenu;
         private ToolStripMenuItem mnuDisplayForm;
-        private ToolStripMenuItem mnuIMForm;
         private ToolStripMenuItem mnuCTSetPosition;
-        private ToolStripMenuItem mnuIMSetPosition;
         private ToolStripMenuItem mnuAUSetPosition;
         private ToolStripMenuItem mnuPositionForm;
         private ToolStripMenuItem mnuSettingsForm;
@@ -91,7 +89,6 @@ namespace myCTI2
         private ToolStripMenuItem mnuExit;
         private static myUdpClient udpClient;
         private static CTIMain CT;
-        private static IMclientForm IM;
         private static CTIausgabe AU;
         private static CTIausgabe AU2;
         private static CTIausgabe AU3;
@@ -112,7 +109,7 @@ namespace myCTI2
         private string CTI_NST;
         private bool dbgTest = false;
         private bool webOK = true;
-        private bool NTLM = false;
+        private bool defCred = false;
         private string udpToLong = "";
         private bool isNavigated = false;
         private string RDP = "";
@@ -149,9 +146,6 @@ namespace myCTI2
                 udpClient.start(31312);
             }
             catch (Exception ex) {debugerror("trayApp NEW() setUDP error: " + ex.Message);}
-
-            // IM vor CT starten (NoStatus)
-            try {Set_IM_pos();} catch (Exception ex2) {debugerror("trayApp NEW() Set_IM_pos() error: " + ex2.Message);}
 
             try {Set_CT_pos();} catch (Exception ex2) {debugerror("trayApp NEW() Set_CT_pos() error: " + ex2.Message);}
 
@@ -197,9 +191,7 @@ namespace myCTI2
         private void Init_contex_menu()
         {
             mnuDisplayForm = new ToolStripMenuItem("myCTI anzeigen");
-            mnuIMForm = new ToolStripMenuItem("Nachrichten anzeigen");
             mnuCTSetPosition = new ToolStripMenuItem("CTI position speichern");
-            mnuIMSetPosition = new ToolStripMenuItem("Nachrichten position speichern");
             mnuAUSetPosition = new ToolStripMenuItem("Popup position speichern");
             mnuSep1 = new ToolStripSeparator();
             mnuSep2 = new ToolStripSeparator();
@@ -209,16 +201,13 @@ namespace myCTI2
 
             mnuExit = new ToolStripMenuItem("Exit");
             MainMenu = new ContextMenuStrip();
-            MainMenu.Items.AddRange(new ToolStripItem[] { mnuDisplayForm, mnuIMForm, mnuSep1, mnuPositionForm, mnuSep2, mnuSettingsForm, mnuSep3, mnuExit });
+            MainMenu.Items.AddRange(new ToolStripItem[] { mnuDisplayForm, mnuSep1, mnuPositionForm, mnuSep2, mnuSettingsForm, mnuSep3, mnuExit });
  
             mnuPositionForm.DropDownItems.Add(mnuCTSetPosition);
             mnuPositionForm.DropDownItems.Add(mnuAUSetPosition);
-            mnuPositionForm.DropDownItems.Add(mnuIMSetPosition);
 
             mnuDisplayForm.Click += new EventHandler(mnuDisplayForm_Click);
-            mnuIMForm.Click += new EventHandler(mnuIMForm_Click);
             mnuCTSetPosition.Click += new EventHandler(mnuCTSetPosition_Click);
-            mnuIMSetPosition.Click += new EventHandler(mnuIMSetPosition_Click);
             mnuAUSetPosition.Click += new EventHandler(mnuAUSetPosition_Click);
             mnuSettingsForm.Click += new EventHandler(mnuSettingsForm_Click);
             mnuExit.Click += new EventHandler(mnuExit_Click);
@@ -273,16 +262,16 @@ namespace myCTI2
             while (true);// prüfe nur auf erreichbarkeit
             */
 
-            setNTML();
+            setUserCredentials();
 
         }
-        private void setNTML()
+        private void setUserCredentials()
         {
             string getUser = "";
 
             string userbak = user;
             user = "";
-            NTLM = true;
+            defCred = true;
             getUser = getWeb("SetUDP?status=off", true);
             if (VB.Val(getUser) > 0)
             {
@@ -292,7 +281,7 @@ namespace myCTI2
             }
             else
             {
-                NTLM = false;
+                defCred = false;
                 user = userbak;
             }
         }
@@ -328,7 +317,6 @@ namespace myCTI2
 
             CT.Navigated += new CTIMain.NavigatedEventHandler(CT_Navigated);
             CT.NoValidUser += new CTIMain.NoValidUserEventHandler(CT_NoValidUser);
-            CT.ShowIM += new CTIMain.ShowIMEventHandler(CT_ShowIM);
             CT.DialNumber += new CTIMain.DialNumberEventHandler(CT_DialNumber);
             CT.SpeakerButton += new CTIMain.SpeakerButtonEventHandler(CT_SpeakerButton);
             CT.SearchNumber += new CTIMain.SearchNumberEventHandler(CT_SearchNumber);
@@ -338,7 +326,7 @@ namespace myCTI2
             CT.SecondPhoneChecked += new CTIMain.SecondPhoneCheckedEventHandler(CT_SecondPhoneChecked);
 
             CTI_NST = RegLoadOwnNst();
-            CT.setNew(NTLM, server, user, password, ssl, userx.ToString());
+            CT.setNew(defCred, server, user, password, ssl, userx.ToString());
             CT.Show();
             CT.Hide();
 
@@ -414,17 +402,6 @@ namespace myCTI2
             int y3 = VB.Val(RegLoad("udp_window_y3", "0"));
             if (x3 != 0 & y3 != 0)
                 AU3.Location = new Point(x3, y3);
-        }
-        private void Set_IM_pos()
-        {
-            if (IM == null)
-                IM = new IMclientForm();
-
-            IM.SendeIMUpdate += new IMclientForm.SendeIMUpdateEventHandler(IM_SendeIMUpdate);
-            IM.Show();
-            IM.Hide();
-            IM.Left = VB.Val(RegLoad("windowIM_x", "100"));
-            IM.Top = VB.Val(RegLoad("windowIM_y", "100"));
         }
         private void Set_ShutdownDummy()
         {
@@ -650,15 +627,6 @@ namespace myCTI2
         {
             ShutDown();
         }
-        private void mnuIMForm_Click(object sender, System.EventArgs e)
-        {
-            if (webOK == false)
-            {
-                ShowSettings();
-                return;
-            }
-            ShowIM();
-        }
         private void mnuCTSetPosition_Click(object sender, System.EventArgs e)
         {
             string state = CT.WindowState.ToString();
@@ -670,11 +638,6 @@ namespace myCTI2
                 RegSave("window_w", CT.Width.ToString());
                 RegSave("window_h", CT.Height.ToString());
             }
-        }
-        private void mnuIMSetPosition_Click(object sender, System.EventArgs e)
-        {
-            RegSave("windowIM_x", IM.Location.X.ToString());
-            RegSave("windowIM_y", IM.Location.Y.ToString());
         }
         private void mnuAUSetPosition_Click(object sender, System.EventArgs e)
         {
@@ -730,25 +693,7 @@ namespace myCTI2
 
         #endregion
 
-        #region " Event Form Instant Messenger "
-        private void IM_SendeIMUpdate(object sender, EventArgs e)
-        {
-            SetIMlist();
-        }
-        #endregion
-
         #region " Event Form CTI Main"
-        private void CT_ShowIM(object sender, EventArgs e)
-        {
-            try
-            {
-                ShowIM();
-            }
-            catch (Exception ex)
-            {
-                System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CT_ShowIM error: " + ex.Message);
-            }
-        }
         private void CT_Navigated(object sender, myEventArgs e)
         {
             isNavigated = true;
@@ -998,7 +943,7 @@ namespace myCTI2
         }
         private void ShowSettings()
         {
-            Settings us = new Settings(userx, NTLM, company.ToUpper());
+            Settings us = new Settings(userx, defCred, company.ToUpper());
             us.ShowDialog();
             if (user != RegLoad("user", "") | password != RegLoad("password", "") | ssl != RegLoad("ssl", "http") | server != RegLoad("server", ""))
             {
@@ -1006,14 +951,14 @@ namespace myCTI2
                 password = RegLoad("password", "");
                 ssl = RegLoad("ssl", "http");
                 server = RegLoad("server", "");
-                setNTML();
+                setUserCredentials();
                 string getuser = getWeb("SetUDP?status=on" + status + "&version=" + CT.Text);
                 userx = VB.Val(getuser);
                 if (webOK == false)
                 {
                     userx = -1;
                 }
-                CT.setNew(NTLM, server, user, password, ssl, userx.ToString());
+                CT.setNew(defCred, server, user, password, ssl, userx.ToString());
             }
         }
         private void dial(string number)
@@ -1043,7 +988,6 @@ namespace myCTI2
         {
             getWeb("SetUDP?status=off" + status);
             CT.destroy();
-            IM.destroy();
             AU.destroy();
             AU2.destroy();
             AU3.destroy();
@@ -1059,10 +1003,11 @@ namespace myCTI2
             CredentialCache mycache = new CredentialCache();
             url = ssl + "://" + server + "/" + url;
             request = (HttpWebRequest)WebRequest.Create(url);
-            if (NTLM == true)
+            if (defCred == true)
             {
-                request.Credentials = CredentialCache.DefaultNetworkCredentials;
-                NetworkCredential x = (NetworkCredential)request.Credentials;
+                request.UseDefaultCredentials = true;
+                //request.Credentials = CredentialCache.DefaultNetworkCredentials;
+                //NetworkCredential x = (NetworkCredential)request.Credentials;
             }
             else
             {
@@ -1096,12 +1041,12 @@ namespace myCTI2
                 if (noErrFile == false)
                     System.IO.File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " GetURL error:" + ex.Message + "\r");
             }
-            if(responseFromServer.Length > 20)
-                TOOL.debugx(1, "getWeb NTML=" + NTLM.ToString() + " responselen=" + responseFromServer.Length.ToString());
+            if (responseFromServer.Length > 20)
+                TOOL.debugx(1, "getWeb defCred=" + defCred.ToString() + " responselen=" + responseFromServer.Length.ToString());
             else
-                TOOL.debugx(1, "getWeb NTML=" + NTLM.ToString() + " response=" + responseFromServer);
+                TOOL.debugx(1, "getWeb defCred=" + defCred.ToString() + " response=" + responseFromServer);
 
-            //TOOL.debugx(2, "getWeb NTML=" + NTLM.ToString() + " response=" + responseFromServer);
+            //TOOL.debugx(2, "getWeb defCred=" + defCred.ToString() + " response=" + responseFromServer);
 
             return responseFromServer;
         }
@@ -1318,16 +1263,7 @@ namespace myCTI2
                 return tmp;
             }
         }
-        private void ShowIM()
-        {
-            SetIMlist();
-            IM.showWindow();
-        }
-        private void SetIMlist()
-        {
-            string IMlist = getWeb("getimlist");
-            IM.setIMlist(IMlist);
-        }
+
         private string convertUTF2HTML(string unicodeString)
         {
             unicodeString = unicodeString.Replace("Ä", "%C4");

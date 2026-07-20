@@ -22,9 +22,6 @@ namespace myCTI2
 
         #region " Storage "
 
-        public event ShowIMEventHandler ShowIM;
-        public delegate void ShowIMEventHandler(object sender, EventArgs e);
-
         public event DialNumberEventHandler DialNumber;
         public delegate void DialNumberEventHandler(object sender, myEventArgs e);
 
@@ -53,7 +50,7 @@ namespace myCTI2
         public delegate void SecondPhoneCheckedEventHandler(object sender, bool e);
 
         private FormWindowState wstate;
-        private bool NTLM;
+        private bool defCred;
         private string user;
         private string password;
         private string server;
@@ -123,11 +120,11 @@ namespace myCTI2
             }
         }
 
-        public void setNew(bool CTIntlm, string CTIserver, string CTIuser, string CTIpassword, string CTIssl, string CTIuserX)
+        public void setNew(bool CTIdefCred, string CTIserver, string CTIuser, string CTIpassword, string CTIssl, string CTIuserX)
         {
             try
             {
-                server = CTIserver; user = CTIuser; password = CTIpassword; ssl = CTIssl; userx = CTIuserX; NTLM = CTIntlm;
+                server = CTIserver; user = CTIuser; password = CTIpassword; ssl = CTIssl; userx = CTIuserX; defCred = CTIdefCred;
 
                 /*
                 GeckoPreferences.User["network.negotiate-auth.trusted-uris"] = server;
@@ -294,16 +291,6 @@ namespace myCTI2
                 textBox1.Text = "";
             }
         }
-        private void buttonShowNumber_Click(object sender, EventArgs e)
-        {
-            // Nr anzeigen
-            DialNumber?.Invoke(this, new myEventArgs("#86"));
-        }
-        private void buttonHideNumber_Click(object sender, EventArgs e)
-        {
-            // Nr. unterdrücken
-            DialNumber?.Invoke(this, new myEventArgs("*86"));
-        }
         private void buttonHome_Click(object sender, EventArgs e)
         {
             navigate("");
@@ -330,10 +317,6 @@ namespace myCTI2
         private void buttonHookOn_Click(object sender, EventArgs e)
         {
             ReleaseButton?.Invoke(this, e);
-        }
-        private void buttonIM_Click(object sender, EventArgs e)
-        {
-            ShowIM?.Invoke(this, e);
         }
         private void buttonSearch_Click(object sender, EventArgs e)
         {
@@ -379,7 +362,6 @@ namespace myCTI2
             webView2.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
             webView2.CoreWebView2.ClientCertificateRequested += CoreWebView2_ClientCertificateRequested;
             webView2.CoreWebView2.PermissionRequested += CoreWebView2_PermissionRequested;
-
         }
         private void CoreWebView2_ServerCertificateErrorDetected(object sender, CoreWebView2ServerCertificateErrorDetectedEventArgs e)
         {

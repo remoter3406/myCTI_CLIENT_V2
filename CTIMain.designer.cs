@@ -33,11 +33,8 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.buttonHelp = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.buttonShowNumber = new System.Windows.Forms.Button();
-            this.buttonHideNumber = new System.Windows.Forms.Button();
             this.buttonHookOn = new System.Windows.Forms.Button();
             this.buttonSpeaker = new System.Windows.Forms.Button();
-            this.buttonIM = new System.Windows.Forms.Button();
             this.buttonSearch = new System.Windows.Forms.Button();
             this.buttonBack = new System.Windows.Forms.Button();
             this.buttonZeitplan = new System.Windows.Forms.Button();
@@ -79,30 +76,6 @@
             this.textBox1.TabIndex = 2;
             this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox1_KeyPress_1);
             // 
-            // buttonShowNumber
-            // 
-            this.buttonShowNumber.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold);
-            this.buttonShowNumber.ForeColor = System.Drawing.Color.ForestGreen;
-            this.buttonShowNumber.Location = new System.Drawing.Point(144, 1);
-            this.buttonShowNumber.Name = "buttonShowNumber";
-            this.buttonShowNumber.Size = new System.Drawing.Size(36, 24);
-            this.buttonShowNumber.TabIndex = 3;
-            this.buttonShowNumber.Text = "Nr.";
-            this.buttonShowNumber.UseVisualStyleBackColor = true;
-            this.buttonShowNumber.Click += new System.EventHandler(this.buttonShowNumber_Click);
-            // 
-            // buttonHideNumber
-            // 
-            this.buttonHideNumber.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Strikeout))));
-            this.buttonHideNumber.ForeColor = System.Drawing.Color.Red;
-            this.buttonHideNumber.Location = new System.Drawing.Point(186, 1);
-            this.buttonHideNumber.Name = "buttonHideNumber";
-            this.buttonHideNumber.Size = new System.Drawing.Size(36, 24);
-            this.buttonHideNumber.TabIndex = 4;
-            this.buttonHideNumber.Text = "Nr.";
-            this.buttonHideNumber.UseVisualStyleBackColor = true;
-            this.buttonHideNumber.Click += new System.EventHandler(this.buttonHideNumber_Click);
-            // 
             // buttonHookOn
             // 
             this.buttonHookOn.FlatAppearance.BorderSize = 0;
@@ -129,26 +102,13 @@
             this.buttonSpeaker.UseVisualStyleBackColor = true;
             this.buttonSpeaker.Click += new System.EventHandler(this.buttonSpeaker_Click);
             // 
-            // buttonIM
-            // 
-            this.buttonIM.FlatAppearance.BorderSize = 0;
-            this.buttonIM.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buttonIM.ForeColor = System.Drawing.SystemColors.Control;
-            this.buttonIM.Image = global::myCTI2.Resource1.IM;
-            this.buttonIM.Location = new System.Drawing.Point(346, 1);
-            this.buttonIM.Name = "buttonIM";
-            this.buttonIM.Size = new System.Drawing.Size(32, 22);
-            this.buttonIM.TabIndex = 7;
-            this.buttonIM.UseVisualStyleBackColor = true;
-            this.buttonIM.Click += new System.EventHandler(this.buttonIM_Click);
-            // 
             // buttonSearch
             // 
             this.buttonSearch.FlatAppearance.BorderSize = 0;
             this.buttonSearch.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.buttonSearch.ForeColor = System.Drawing.SystemColors.Control;
             this.buttonSearch.Image = global::myCTI2.Resource1.suche;
-            this.buttonSearch.Location = new System.Drawing.Point(384, 1);
+            this.buttonSearch.Location = new System.Drawing.Point(153, 1);
             this.buttonSearch.Name = "buttonSearch";
             this.buttonSearch.Size = new System.Drawing.Size(32, 23);
             this.buttonSearch.TabIndex = 8;
@@ -286,16 +246,13 @@
             this.Controls.Add(this.buttonZeitplan);
             this.Controls.Add(this.buttonBack);
             this.Controls.Add(this.buttonSearch);
-            this.Controls.Add(this.buttonIM);
             this.Controls.Add(this.buttonSpeaker);
             this.Controls.Add(this.buttonHookOn);
-            this.Controls.Add(this.buttonHideNumber);
-            this.Controls.Add(this.buttonShowNumber);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.buttonHelp);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "CTIMain";
-            this.Text = "myCTI Client V2.1.1";
+            this.Text = "myCTI Client V2.2.1";
             this.SizeChanged += new System.EventHandler(this.CTIMain_SizeChanged);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.CTIMain_KeyDown);
             ((System.ComponentModel.ISupportInitialize)(this.webView2)).EndInit();
@@ -308,11 +265,8 @@
 
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Button buttonHelp;
-        private System.Windows.Forms.Button buttonShowNumber;
-        private System.Windows.Forms.Button buttonHideNumber;
         private System.Windows.Forms.Button buttonHookOn;
         private System.Windows.Forms.Button buttonSpeaker;
-        private System.Windows.Forms.Button buttonIM;
         private System.Windows.Forms.Button buttonSearch;
         private System.Windows.Forms.Button buttonBack;
         internal System.Windows.Forms.TextBox textBox1;
