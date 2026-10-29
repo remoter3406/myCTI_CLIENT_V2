@@ -14,14 +14,12 @@ namespace myCTI2
         private string ssl;
         private string keycode;
         private string hotkey;
-        private string cykeyfire;
-        private string cymonitor;
         private string doubleClickLink;
         private CtiServer web;
         #endregion
 
         #region " Form "
-        public Settings(int Xuser, CtiServer web, string company)
+        public Settings(int Xuser, CtiServer web)
         {
             InitializeComponent();
 
@@ -33,14 +31,7 @@ namespace myCTI2
             server = LocalReg.Load("server", "");
             keycode = LocalReg.Load("keycodeRelease", "29");
             hotkey = LocalReg.Load("hotkey", "Y");
-            cykeyfire = LocalReg.Load("CyKeyfire", "1");
-            cymonitor = LocalReg.Load("CyMonitor", "");
             doubleClickLink = LocalReg.Load("DoubleClickLink", "");
-
-            if (VB.Left(company, 3) != "KTC")
-            {
-                groupBoxVDS.Visible = false;
-            }
 
             textBoxServerIP.Text = server;
             textBoxUser.Text = user;
@@ -53,20 +44,6 @@ namespace myCTI2
             keycodeTrennen.Text = keycode;
             hotkeyDial.Text = hotkey;
             textBoxDoubleKlick.Text = doubleClickLink;
-
-            if (cykeyfire == "1")
-                checkBoxVDS.Checked = true;
-            else
-                checkBoxVDS.Checked = false;
-
-            if (cymonitor == "0")
-                radioButtonVDS1.Checked = true;
-            else if (cymonitor == "1")
-                radioButtonVDS2.Checked = true;
-            else if (cymonitor == "2")
-                radioButtonVDS3.Checked = true;
-            else
-                radioButtonVDSaus.Checked = true;
 
             if (userx == 0)
             {
@@ -166,20 +143,6 @@ namespace myCTI2
             LocalReg.Save("keycodeRelease", keycodeTrennen.Text);
             LocalReg.Save("hotkey", hotkeyDial.Text.ToUpper());
             LocalReg.Save("DoubleClickLink", textBoxDoubleKlick.Text);
-
-            if (checkBoxVDS.Checked == true)
-                LocalReg.Save("CyKeyfire", "1");
-            else
-                LocalReg.Save("CyKeyfire", "0");
-
-            if (radioButtonVDS1.Checked == true)
-                LocalReg.Save("CyMonitor", "0");
-            else if (radioButtonVDS2.Checked == true)
-                LocalReg.Save("CyMonitor", "1");
-            else if (radioButtonVDS3.Checked == true)
-                LocalReg.Save("CyMonitor", "2");
-            else
-                LocalReg.Save("CyMonitor", "");
 
             LocalReg.Save("server", textBoxServerIP.Text);
             if (radioButtonHttps.Checked == true)

@@ -36,7 +36,7 @@ Neue `.cs`-Dateien müssen explizit in `myCTI2.csproj` eingetragen werden (Forms
 **`TrayContext` (ApplicationContext) ist die Zentrale.** Er besitzt alle Forms und verdrahtet ihre Events:
 - `CTIMain` (`CT`) – Hauptfenster mit WebView2 für Serverseiten (`Monitor.PL`, Kontakte, …), Wählfeld und Buttons. Löst Events aus (`DialNumber`, `ReleaseButton`, `ZeitplanButton`, …), die TrayContext in HTTP-Aufrufe an den Server umsetzt.
 - `CTIausgabe` ×3 (Array `AU[0..2]`) – Anruf-Popups. Bis zu drei gleichzeitige Anrufe; `belegt[0..2]` ordnet eine Anruf-ID einem Popup zu (gleiche ID → gleiches Popup, sonst erstes freies). `ausgabe(text)` zerlegt den Anrufdatensatz über `CtiProtocol.ParseCall` (`<cmd><x><ziel>|<anrufer>|<for>|<id>|<bild>`, ab Index 2) und leitet ihn zusätzlich an UDP-Port 31311 weiter.
-- `ShutDownDummy` (`SD`) – unsichtbare Form, die das Herunterfahren von Windows abfängt und globale Hotkeys registriert (Strg+1/2/3, Strg+<konfigurierte Taste> = markierten Text über die Zwischenablage wählen, Strg+Leertaste = Popups ausblenden).
+- `ShutDownDummy` (`SD`) – unsichtbare Form, die das Herunterfahren von Windows abfängt und globale Hotkeys registriert (Strg+<konfigurierte Taste> = markierten Text über die Zwischenablage wählen, Strg+Leertaste = Popups ausblenden).
 - `Settings`, `InputBox` – Konfigurationsdialoge. `Settings` bekommt die `CtiServer`-Instanz von TrayContext übergeben.
 
 **Gemeinsame Bausteine:**

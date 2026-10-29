@@ -50,14 +50,6 @@
             this.textBox12 = new System.Windows.Forms.TextBox();
             this.btAbbrechen = new System.Windows.Forms.Button();
             this.btOK = new System.Windows.Forms.Button();
-            this.labelCitrix1 = new System.Windows.Forms.Label();
-            this.labelCitrix2 = new System.Windows.Forms.Label();
-            this.checkBoxVDS = new System.Windows.Forms.CheckBox();
-            this.radioButtonVDSaus = new System.Windows.Forms.RadioButton();
-            this.groupBoxVDS = new System.Windows.Forms.GroupBox();
-            this.radioButtonVDS3 = new System.Windows.Forms.RadioButton();
-            this.radioButtonVDS2 = new System.Windows.Forms.RadioButton();
-            this.radioButtonVDS1 = new System.Windows.Forms.RadioButton();
             this.groupBoxServer = new System.Windows.Forms.GroupBox();
             this.textBoxDeflect3 = new System.Windows.Forms.TextBox();
             this.textBoxDeflect2 = new System.Windows.Forms.TextBox();
@@ -94,7 +86,6 @@
             this.radioButtonHttp = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
             this.textBoxServerIP = new System.Windows.Forms.TextBox();
-            this.groupBoxVDS.SuspendLayout();
             this.groupBoxServer.SuspendLayout();
             this.groupBoxSettings.SuspendLayout();
             this.groupBoxWebSettings.SuspendLayout();
@@ -279,91 +270,6 @@
             this.btOK.Text = "OK";
             this.btOK.UseVisualStyleBackColor = true;
             this.btOK.Click += new System.EventHandler(this.btOK_Click);
-            // 
-            // labelCitrix1
-            // 
-            this.labelCitrix1.AutoSize = true;
-            this.labelCitrix1.Location = new System.Drawing.Point(6, 24);
-            this.labelCitrix1.Name = "labelCitrix1";
-            this.labelCitrix1.Size = new System.Drawing.Size(88, 13);
-            this.labelCitrix1.TabIndex = 51;
-            this.labelCitrix1.Text = "Keyfire aktivieren";
-            // 
-            // labelCitrix2
-            // 
-            this.labelCitrix2.AutoSize = true;
-            this.labelCitrix2.Location = new System.Drawing.Point(6, 56);
-            this.labelCitrix2.Name = "labelCitrix2";
-            this.labelCitrix2.Size = new System.Drawing.Size(76, 13);
-            this.labelCitrix2.TabIndex = 52;
-            this.labelCitrix2.Text = "Monitor setzen";
-            // 
-            // checkBoxVDS
-            // 
-            this.checkBoxVDS.AutoSize = true;
-            this.checkBoxVDS.Location = new System.Drawing.Point(100, 23);
-            this.checkBoxVDS.Name = "checkBoxVDS";
-            this.checkBoxVDS.Size = new System.Drawing.Size(15, 14);
-            this.checkBoxVDS.TabIndex = 53;
-            this.checkBoxVDS.UseVisualStyleBackColor = true;
-            // 
-            // radioButtonVDSaus
-            // 
-            this.radioButtonVDSaus.AutoSize = true;
-            this.radioButtonVDSaus.Checked = true;
-            this.radioButtonVDSaus.Location = new System.Drawing.Point(9, 72);
-            this.radioButtonVDSaus.Name = "radioButtonVDSaus";
-            this.radioButtonVDSaus.Size = new System.Drawing.Size(43, 17);
-            this.radioButtonVDSaus.TabIndex = 54;
-            this.radioButtonVDSaus.TabStop = true;
-            this.radioButtonVDSaus.Text = "Aus";
-            this.radioButtonVDSaus.UseVisualStyleBackColor = true;
-            // 
-            // groupBoxVDS
-            // 
-            this.groupBoxVDS.Controls.Add(this.radioButtonVDS3);
-            this.groupBoxVDS.Controls.Add(this.radioButtonVDS2);
-            this.groupBoxVDS.Controls.Add(this.radioButtonVDS1);
-            this.groupBoxVDS.Controls.Add(this.labelCitrix1);
-            this.groupBoxVDS.Controls.Add(this.labelCitrix2);
-            this.groupBoxVDS.Controls.Add(this.radioButtonVDSaus);
-            this.groupBoxVDS.Controls.Add(this.checkBoxVDS);
-            this.groupBoxVDS.Location = new System.Drawing.Point(524, 453);
-            this.groupBoxVDS.Name = "groupBoxVDS";
-            this.groupBoxVDS.Size = new System.Drawing.Size(175, 141);
-            this.groupBoxVDS.TabIndex = 55;
-            this.groupBoxVDS.TabStop = false;
-            this.groupBoxVDS.Text = "KTC VDS";
-            // 
-            // radioButtonVDS3
-            // 
-            this.radioButtonVDS3.AutoSize = true;
-            this.radioButtonVDS3.Location = new System.Drawing.Point(100, 95);
-            this.radioButtonVDS3.Name = "radioButtonVDS3";
-            this.radioButtonVDS3.Size = new System.Drawing.Size(69, 17);
-            this.radioButtonVDS3.TabIndex = 57;
-            this.radioButtonVDS3.Text = "Monitor 3";
-            this.radioButtonVDS3.UseVisualStyleBackColor = true;
-            // 
-            // radioButtonVDS2
-            // 
-            this.radioButtonVDS2.AutoSize = true;
-            this.radioButtonVDS2.Location = new System.Drawing.Point(9, 95);
-            this.radioButtonVDS2.Name = "radioButtonVDS2";
-            this.radioButtonVDS2.Size = new System.Drawing.Size(69, 17);
-            this.radioButtonVDS2.TabIndex = 56;
-            this.radioButtonVDS2.Text = "Monitor 2";
-            this.radioButtonVDS2.UseVisualStyleBackColor = true;
-            // 
-            // radioButtonVDS1
-            // 
-            this.radioButtonVDS1.AutoSize = true;
-            this.radioButtonVDS1.Location = new System.Drawing.Point(100, 72);
-            this.radioButtonVDS1.Name = "radioButtonVDS1";
-            this.radioButtonVDS1.Size = new System.Drawing.Size(69, 17);
-            this.radioButtonVDS1.TabIndex = 55;
-            this.radioButtonVDS1.Text = "Monitor 1";
-            this.radioButtonVDS1.UseVisualStyleBackColor = true;
             // 
             // groupBoxServer
             // 
@@ -746,15 +652,12 @@
             this.Controls.Add(this.groupBoxWebSettings);
             this.Controls.Add(this.groupBoxSettings);
             this.Controls.Add(this.groupBoxServer);
-            this.Controls.Add(this.groupBoxVDS);
             this.Controls.Add(this.btOK);
             this.Controls.Add(this.btAbbrechen);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Settings";
             this.Text = "Einstellungen";
             this.TopMost = true;
-            this.groupBoxVDS.ResumeLayout(false);
-            this.groupBoxVDS.PerformLayout();
             this.groupBoxServer.ResumeLayout(false);
             this.groupBoxServer.PerformLayout();
             this.groupBoxSettings.ResumeLayout(false);
@@ -787,14 +690,6 @@
         internal System.Windows.Forms.TextBox textBox12;
         internal System.Windows.Forms.Button btAbbrechen;
         internal System.Windows.Forms.Button btOK;
-        internal System.Windows.Forms.Label labelCitrix1;
-        internal System.Windows.Forms.Label labelCitrix2;
-        private System.Windows.Forms.CheckBox checkBoxVDS;
-        private System.Windows.Forms.RadioButton radioButtonVDSaus;
-        private System.Windows.Forms.GroupBox groupBoxVDS;
-        private System.Windows.Forms.RadioButton radioButtonVDS3;
-        private System.Windows.Forms.RadioButton radioButtonVDS2;
-        private System.Windows.Forms.RadioButton radioButtonVDS1;
         private System.Windows.Forms.GroupBox groupBoxServer;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.GroupBox groupBoxSettings;

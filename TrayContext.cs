@@ -71,7 +71,6 @@ namespace myCTI2
         private CtiServer web = new CtiServer();
         private int userx = -1;
         private string keycodeRelease;
-        private string company = "";
         private bool blinken;
         private string udpToLong = "";
         private bool isNavigated = false;
@@ -266,8 +265,6 @@ namespace myCTI2
             {
             }
 
-            company = web.GetReg(@"SETTINGS\Company");
-
             if (RegLoadLostCall() != "")
                 blinken = true;
 
@@ -323,7 +320,6 @@ namespace myCTI2
             SD.Left = -50;
             SD.Top = -50;
             SD.Show();
-            SD.timer1.Enabled = true;
         }
 
         private void setAudio()
@@ -763,7 +759,7 @@ namespace myCTI2
         }
         private void ShowSettings()
         {
-            Settings us = new Settings(userx, web, company.ToUpper());
+            Settings us = new Settings(userx, web);
             us.ShowDialog();
             loadKeycodeRelease();
             if (web.User != LocalReg.Load("user", "") | web.Password != LocalReg.Load("password", "") | web.Ssl != LocalReg.Load("ssl", "http") | web.Server != LocalReg.Load("server", ""))
