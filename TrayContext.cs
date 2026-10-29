@@ -207,7 +207,15 @@ namespace myCTI2
         }
         private void setUserCredentials()
         {
-            // erst Windows Anmeldung (NTLM SSO) probieren, sonst gespeicherter User
+            // eingetragener Benutzer hat Vorrang vor der Windows-Anmeldung
+            if (web.User != "")
+            {
+                web.DefCred = false;
+                web.Get("SetUDP?status=off", true);   // wie bisher beim Start: Status zurücksetzen, Erreichbarkeit prüfen (WebOK)
+                return;
+            }
+
+            // kein Benutzer eingetragen: Windows Anmeldung (NTLM SSO)
             string userbak = web.User;
             web.User = "";
             web.DefCred = true;
@@ -227,7 +235,7 @@ namespace myCTI2
         private void Set_CT_pos()
         {
             if (CT == null)
-                CT = new CTIMain();
+                CT = new CTIMain(web.DefCred);
 
             if (web.WebOK == false)
                 return;
@@ -744,11 +752,15 @@ namespace myCTI2
                 web.Server = LocalReg.Load("server", "");
                 if (udpClient != null)
                     udpClient.setServer(web.Server);
+                bool defCredBefore = web.DefCred;
                 setUserCredentials();
                 userx = VB.Val(web.Get("SetUDP?status=on&version=" + TOOL.UrlEnc(CT.Text)));
                 if (web.WebOK == false)
                     userx = -1;
                 CT.setNew(web.DefCred, web.Server, web.User, web.Password, web.Ssl, userx.ToString());
+                // die Anmeldeart des eingebetteten Browsers wird beim Start festgelegt
+                if (defCredBefore != web.DefCred)
+                    MessageBox.Show("Die Anmeldeart wurde geändert (" + (web.DefCred ? "Windows-Anmeldung" : "Benutzer " + web.User) + ").\nBitte myCTI neu starten, damit sie auch in der Web-Oberfläche gilt.", "myCTI");
             }
         }
         private void dial(string number)

@@ -65,15 +65,18 @@ namespace myCTI2
         #endregion
 
         #region " Form "
-        public CTIMain()
+        // windowsAuth = false: Browser meldet sich nicht automatisch mit Windows an, sondern bekommt
+        // Benutzer/Passwort (BasicAuthenticationRequested). Lässt sich nur beim Start festlegen.
+        public CTIMain(bool windowsAuth = true)
         {
             InitializeComponent();
             // Titel wird als Version an den Server gemeldet, Format beibehalten
             this.Text = "myCTI Client V" + TOOL.AppVersion;
-            init();
+            defCred = windowsAuth;
+            init(windowsAuth);
         }
 
-        private void init()
+        private async void init(bool windowsAuth)
         {
             // Assembly.Location ist bei einer Einzel-Exe leer, AppContext.BaseDirectory nicht
             string appdir = AppContext.BaseDirectory;
@@ -81,8 +84,12 @@ namespace myCTI2
             try
             {
                 webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
-                webView2.EnsureCoreWebView2Async();
-                
+                CoreWebView2EnvironmentOptions options = new CoreWebView2EnvironmentOptions();
+                // keine Server für die automatische Windows-Anmeldung (NTLM/Kerberos) freigeben
+                if (!windowsAuth)
+                    options.AdditionalBrowserArguments = "--auth-server-allowlist=_";
+                CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, null, options);
+                await webView2.EnsureCoreWebView2Async(env);
             }
             catch (Exception ex)
             {
@@ -408,9 +415,9 @@ namespace myCTI2
 
         private void CoreWebView2_BasicAuthenticationRequested(object sender, CoreWebView2BasicAuthenticationRequestedEventArgs e)
         {
-            TOOL.debugx("CoreWebView2_BasicAuthenticationRequested start");
-            // wird nicht bei SSO aufgerufen, kann also immer ausgefüllt werden
-            if (user != "")
+            TOOL.debugx("CoreWebView2_BasicAuthenticationRequested challenge=" + e.Challenge);
+            // bei automatischer Windows-Anmeldung kommt das Event nicht; sonst eingetragene Daten verwenden
+            if (!defCred && !string.IsNullOrEmpty(user))
             {
                 e.Response.UserName = user;
                 e.Response.Password = password;
