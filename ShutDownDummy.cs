@@ -4,7 +4,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Threading;
-using Microsoft.Win32;
 using System.Drawing;
 
 namespace myCTI2
@@ -123,7 +122,7 @@ namespace myCTI2
 
         private void newHotkey()
         {
-            string shortcut = RegLoad("hotkey", "Y");
+            string shortcut = LocalReg.Load("hotkey", "Y");
             try
             {
                 UnregisterHotKey(this.Handle, 1);
@@ -284,7 +283,7 @@ namespace myCTI2
                 if (count > 100)
                 {
                     count = 0;
-                    if (RegLoad("CyKeyfire", "1") == "1")
+                    if (LocalReg.Load("CyKeyfire", "1") == "1")
                     {
                         sendStrgChar(child, "N");
                         Thread.Sleep(300);
@@ -301,7 +300,7 @@ namespace myCTI2
                 {
                     timer1.Enabled = false;
 
-                    string monitor = RegLoad("CyMonitor", "");
+                    string monitor = LocalReg.Load("CyMonitor", "");
                     if (monitor != "")
                     {
                         dbg("startCount=" + startCount.ToString());
@@ -642,14 +641,6 @@ namespace myCTI2
         #endregion
 
         #region " Sonstiges "
-        private string RegLoad(string var, string defaultx = "")
-        {
-            RegistryKey MeinKey;
-            MeinKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AB Server", true);
-            if (MeinKey == null)
-                MeinKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\AB Server");
-            return MeinKey.GetValue(var, defaultx).ToString();
-        }
         private void shortwait(int je100ms = 10)
         {
             for (int a = 1; a <= je100ms; a++)

@@ -1,12 +1,10 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
-//using System.Web.UI.WebControls.WebParts;
 using System.Windows.Forms;
 
 namespace myCTI2
@@ -90,18 +88,11 @@ namespace myCTI2
                 return;
             }
             TOOL.debugx("Ausgabe: " + VB.Left(text,60));
-            int pos;
-            string xanrufer;
-            string xfor;
-            string bild;
-
-            xanrufer = "";
-            xziel = "";
-            xfor = "";
-            xid = "";
-            bild = "";
-            cmd = VB.Left(text, 1);
-                timer1.Enabled = false;
+            CallRecord call = CtiProtocol.ParseCall(text);
+            cmd = call.Cmd;
+            xziel = call.Ziel;
+            xid = call.Id;
+            timer1.Enabled = false;
             if (cmd == "1" | cmd == "2" | cmd == "6")
             {
                 if (cmd == "1")
@@ -114,89 +105,32 @@ namespace myCTI2
                     timer1.Interval = 15000; //max 15sek
                     timer1.Enabled = true;
                 }
-                text = VB.Mid(text, 2);
-                pos = text.IndexOf("|");
-                if (pos >= 0)
-                {
-                    xziel = VB.Left(text, pos);
-                    text = VB.Mid(text, pos + 1);
-                    pos = text.IndexOf("|");
-                    if (pos >= 0)
-                    {
-                        xanrufer = VB.Left(text, pos);
-                        text = VB.Mid(text, pos + 1);
-                        pos = text.IndexOf("|");
-                        if (pos >= 0)
-                        {
-                            xfor = VB.Left(text, pos);
-                            text = VB.Mid(text, pos + 1);
-                            pos = text.IndexOf("|");
-                            if (pos >= 0)
-                            {
-                                xid = VB.Left(text, pos);
-                                bild = VB.Mid(text, pos + 1);
-                            }
-                        }
-                    }
-                }
-                anrufer.Text = xanrufer;
-                udpSend31311(cmd + xanrufer);
-                ziel.Text = xziel;
+                anrufer.Text = call.Anrufer;
+                udpSend31311(cmd + call.Anrufer);
+                ziel.Text = call.Ziel;
 
+                Kampagne.Text = call.Kampagne;
+                Kampagne.Visible = call.Kampagne != "";
 
-                string[] sXFor = xfor.Split('_');
-                xfor = sXFor[0];
-                if (sXFor.Length > 1)
-                {
-                    Kampagne.Text= "Kampagne " + sXFor[1] + " Rückruf vom " + sXFor[2] + " (" + sXFor[3] + ")"; 
-                    Kampagne.Visible = true;
-                }
-                else
-                {
-                    Kampagne.Text = "";
-                    Kampagne.Visible = false;
-                }
-                if (xfor != xziel)
-                {
-                    ursprung.Text = xfor;
-                    ursprung.Visible = true;
-                    labelUrsprung.Visible = true;
-                }
-                else
-                {
-                    ursprung.Text = "";
-                    ursprung.Visible = false;
-                    labelUrsprung.Visible = false;
-                }
-                if (xanrufer == "")
-                {
-                    anrufer.Visible = false;
-                    label1.Visible = false;
-                }
-                else
-                {
-                    anrufer.Visible = true;
-                    label1.Visible = true;
-                }
-                if (xziel == "")
-                {
-                    ziel.Visible = false;
-                    label2.Visible = false;
-                }
-                else
-                {
-                    ziel.Visible = true;
-                    label2.Visible = true;
-                }
-                if (bild != "")
+                bool umgeleitet = call.For != call.Ziel;
+                ursprung.Text = umgeleitet ? call.For : "";
+                ursprung.Visible = umgeleitet;
+                labelUrsprung.Visible = umgeleitet;
+
+                anrufer.Visible = call.Anrufer != "";
+                label1.Visible = call.Anrufer != "";
+                ziel.Visible = call.Ziel != "";
+                label2.Visible = call.Ziel != "";
+
+                if (call.Bild != "")
                 {
                     try
                     {
-                        zeigeImage(new Bitmap(GenerateStreamFromString(bild)));
+                        zeigeImage(new Bitmap(GenerateStreamFromString(call.Bild)));
                     }
                     catch
                     {
-                        TOOL.debugx("Ausgabe: Imagefehler len=" + bild.Length.ToString());
+                        TOOL.debugx("Ausgabe: Imagefehler len=" + call.Bild.Length.ToString());
                         zeigeImage(Resource1.smilie1);
                     }
                 }
@@ -217,20 +151,8 @@ namespace myCTI2
             else
             {
                 Hide();
-
-                text = VB.Mid(text, 2);
-                pos = text.IndexOf("|");
-                if (pos >= 0)
-                {
-                    xziel = VB.Left(text, pos);
-                    text = VB.Mid(text, pos + 1);
-                    pos = text.IndexOf("|");
-                    if (pos >= 0)
-                    {
-                        xanrufer = VB.Left(text, pos);
-                        udpSend31311(cmd + xanrufer);
-                    }
-                }
+                if (call.FieldCount >= 3)
+                    udpSend31311(cmd + call.Anrufer);
             }
             Application.DoEvents();
         }
@@ -289,15 +211,20 @@ namespace myCTI2
         }
         private void klickClose()
         {
-            File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " klickClose saveloc=" + saveLoc.ToString() + " windownum=" + windowNum.ToString()   + "\r\n");
+            TOOL.debugx("klickClose saveloc=" + saveLoc.ToString() + " windownum=" + windowNum.ToString());
 
             if (saveLoc)
             {
                 saveLoc= false;
-                int x = this.Location.X;
-                int y = this.Location.Y;
-                RegSave("udp_window_x" + windowNum.ToString(), x.ToString());
-                RegSave("udp_window_y" + windowNum.ToString(), y.ToString());
+                try
+                {
+                    LocalReg.Save("udp_window_x" + windowNum.ToString(), this.Location.X.ToString());
+                    LocalReg.Save("udp_window_y" + windowNum.ToString(), this.Location.Y.ToString());
+                }
+                catch (Exception ex)
+                {
+                    TOOL.errorx("CTIausgabe position speichern error: " + ex.Message);
+                }
             }
             this.Hide();
         }
@@ -320,42 +247,16 @@ namespace myCTI2
         {
             try
             {
-                UdpClient udpClient = new UdpClient();
-                byte[] bytCommand = new byte[] { };
-                int pRet;
-                IPAddress GLOIP = IPAddress.Parse("127.0.0.1");
-                int GLOINTPORT = 31311;
-                udpClient.Connect(GLOIP, GLOINTPORT);
-                bytCommand = Encoding.Default.GetBytes(text);
-                pRet = udpClient.Send(bytCommand, bytCommand.Length);
+                using (UdpClient udpClient = new UdpClient())
+                {
+                    udpClient.Connect(IPAddress.Loopback, 31311);
+                    byte[] bytCommand = Encoding.Default.GetBytes(text);
+                    udpClient.Send(bytCommand, bytCommand.Length);
+                }
             }
             catch
             {
             }
-        }
-
-        private void RegSave(string var, string para)
-        {
-            File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " CTIausgabe>RegSave var=" + var + " para=" + para + "\r\n");
-            try
-            {
-                RegistryKey MeinKey;
-                MeinKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AB Server", true);
-                MeinKey.SetValue(var, para);
-                MeinKey.Close();
-            }
-            catch(Exception ex) 
-            {
-                File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + " CTIausgabe>RegSave error:" + ex.Message + "\r\n");
-            }
-        }
-        private string RegLoad(string var, string defaultx = "")
-        {
-            RegistryKey MeinKey;
-            MeinKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AB Server", true);
-            if (MeinKey == null)
-                MeinKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\AB Server");
-            return MeinKey.GetValue(var, defaultx).ToString();
         }
 
         private void zeigeImage(Image bild)

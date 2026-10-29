@@ -82,7 +82,7 @@
             this.buttonHookOn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.buttonHookOn.ForeColor = System.Drawing.SystemColors.Control;
             this.buttonHookOn.Image = global::myCTI2.Resource1.hookon;
-            this.buttonHookOn.Location = new System.Drawing.Point(239, 1);
+            this.buttonHookOn.Location = new System.Drawing.Point(144, 0);
             this.buttonHookOn.Name = "buttonHookOn";
             this.buttonHookOn.Size = new System.Drawing.Size(23, 21);
             this.buttonHookOn.TabIndex = 5;
@@ -95,7 +95,7 @@
             this.buttonSpeaker.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.buttonSpeaker.ForeColor = System.Drawing.SystemColors.Control;
             this.buttonSpeaker.Image = global::myCTI2.Resource1.lsp;
-            this.buttonSpeaker.Location = new System.Drawing.Point(278, 3);
+            this.buttonSpeaker.Location = new System.Drawing.Point(173, 2);
             this.buttonSpeaker.Name = "buttonSpeaker";
             this.buttonSpeaker.Size = new System.Drawing.Size(21, 19);
             this.buttonSpeaker.TabIndex = 6;
@@ -108,7 +108,7 @@
             this.buttonSearch.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.buttonSearch.ForeColor = System.Drawing.SystemColors.Control;
             this.buttonSearch.Image = global::myCTI2.Resource1.suche;
-            this.buttonSearch.Location = new System.Drawing.Point(153, 1);
+            this.buttonSearch.Location = new System.Drawing.Point(213, 0);
             this.buttonSearch.Name = "buttonSearch";
             this.buttonSearch.Size = new System.Drawing.Size(32, 23);
             this.buttonSearch.TabIndex = 8;
@@ -134,7 +134,7 @@
             this.buttonZeitplan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.buttonZeitplan.ForeColor = System.Drawing.SystemColors.Control;
             this.buttonZeitplan.Image = ((System.Drawing.Image)(resources.GetObject("buttonZeitplan.Image")));
-            this.buttonZeitplan.Location = new System.Drawing.Point(433, 3);
+            this.buttonZeitplan.Location = new System.Drawing.Point(595, 3);
             this.buttonZeitplan.Name = "buttonZeitplan";
             this.buttonZeitplan.Size = new System.Drawing.Size(20, 22);
             this.buttonZeitplan.TabIndex = 10;

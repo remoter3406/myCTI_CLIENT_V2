@@ -41,9 +41,6 @@
     <Reference Include="Microsoft.Web.WebView2.WinForms, Version=1.0.3240.44, Culture=neutral, PublicKeyToken=2a8ab48044d2601e, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Web.WebView2.1.0.3240.44\lib\net462\Microsoft.Web.WebView2.WinForms.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Web.WebView2.Wpf, Version=1.0.3240.44, Culture=neutral, PublicKeyToken=2a8ab48044d2601e, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Web.WebView2.1.0.3240.44\lib\net462\Microsoft.Web.WebView2.Wpf.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
@@ -61,7 +58,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AudioManager.cs" />
     <Compile Include="Common.cs" />
+    <Compile Include="CtiProtocol.cs" />
+    <Compile Include="CtiServer.cs" />
     <Compile Include="CTIausgabe.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -73,12 +73,6 @@
     </Compile>
     <Compile Include="CTIMain.designer.cs">
       <DependentUpon>CTIMain.cs</DependentUpon>
-    </Compile>
-    <Compile Include="IMclientForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="IMclientForm.designer.cs">
-      <DependentUpon>IMclientForm.cs</DependentUpon>
     </Compile>
     <Compile Include="InputBox.cs">
       <SubType>Form</SubType>
@@ -112,9 +106,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="CTIMain.resx">
       <DependentUpon>CTIMain.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="IMclientForm.resx">
-      <DependentUpon>IMclientForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="InputBox.resx">
       <DependentUpon>InputBox.cs</DependentUpon>

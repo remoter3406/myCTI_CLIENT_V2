@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Media;
-using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Web;
 using System.Windows.Forms;
 
 namespace myCTI2
@@ -16,12 +16,6 @@ namespace myCTI2
         public static short Asc(string String)
         {
             return Encoding.Default.GetBytes(String)[0];
-        }
-        public static string Chr(int CharCode)
-        {
-            if (CharCode > 255)
-                throw new ArgumentOutOfRangeException("CharCode", CharCode, "CharCode must be between 0 and 255.");
-            return Encoding.Default.GetString(new[] { (byte)CharCode });
         }
         public static int Val(string String)
         {
@@ -46,7 +40,7 @@ namespace myCTI2
             maxLength = Math.Abs(maxLength);
             if (begin >= value.Length) return "";
             return (value.Length < (begin + maxLength)
-                   ? value
+                   ? value.Substring(begin)
                    : value.Substring(begin, maxLength)
                    );
         }
@@ -65,25 +59,68 @@ namespace myCTI2
 
             return value.Length <= length ? value : value.Substring(value.Length - length);
         }
-        public static string ToUTF8(string iso)
+    }
+
+    // lokale Einstellungen unter HKCU\SOFTWARE\AB Server
+    public static class LocalReg
+    {
+        private const string KeyPath = @"SOFTWARE\AB Server";
+
+        public static string Load(string var, string defaultx = "")
         {
-            Encoding utf_8 = Encoding.UTF8;
-            byte[] utf8Bytes = System.Text.Encoding.UTF8.GetBytes(iso);
-            string s_unicode2 = System.Text.Encoding.Default.GetString(utf8Bytes);
-            return s_unicode2;
+            using (RegistryKey key = Registry.CurrentUser.CreateSubKey(KeyPath))
+            {
+                return key.GetValue(var, defaultx).ToString();
+            }
         }
-        public static string ToISO(string utf8)
+        public static void Save(string var, string para)
         {
-            Encoding utf_8 = Encoding.UTF8;
-            byte[] isoBytes = System.Text.Encoding.Default.GetBytes(utf8);
-            string s_iso2 = System.Text.Encoding.UTF8.GetString(isoBytes);
-            return s_iso2;
+            using (RegistryKey key = Registry.CurrentUser.CreateSubKey(KeyPath))
+            {
+                key.SetValue(var, para);
+            }
+        }
+    }
+
+    public class myEventArgs : EventArgs
+    {
+        private readonly string text;
+        private readonly string text2;
+        private readonly string text3;
+
+        public myEventArgs(string text)
+        {
+            this.text = text;
+        }
+        public myEventArgs(string text, string text2)
+        {
+            this.text = text;
+            this.text2 = text2;
+        }
+        public myEventArgs(string text, string text2, string text3)
+        {
+            this.text = text;
+            this.text2 = text2;
+            this.text3 = text3;
+        }
+        public string Text
+        {
+            get { return this.text; }
+        }
+        public string Text2
+        {
+            get { return this.text2; }
+        }
+        public string Text3
+        {
+            get { return this.text3; }
         }
     }
 
     public static class TOOL
     {
         const int trace = 1;
+        const long maxLogSize = 5 * 1024 * 1024;
 
         #region " VARS "
         private const int APPCOMMAND_VOLUME_MUTE = 0x80000;
@@ -100,6 +137,7 @@ namespace myCTI2
         public static string ringAudio = "";
 
         private static bool isUnMute = false;
+        private static readonly object logLock = new object();
         #endregion
 
         #region " Internal "
@@ -178,58 +216,24 @@ namespace myCTI2
             isUnMute = false;
         }
 
-        internal static string DownloadWebpage(string URL, int timeout = 500)
+        // URL Parameter kodieren, ANSI wie der Rest der Serverkommunikation
+        internal static string UrlEnc(string text)
         {
-            System.IO.Stream IoStream = null;
-            System.IO.StreamReader StrRead = null;
-            string web = "";
-            try
-            {
-                System.Net.HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
-                Request.Timeout = timeout;
-                
-                Request.UserAgent = "myGPS";
-                IoStream = Request.GetResponse().GetResponseStream();
-                StrRead = new System.IO.StreamReader(IoStream, System.Text.Encoding.Default);
-                web = StrRead.ReadToEnd();
-                StrRead.Close();
-                IoStream.Close();
-            }
-            catch (Exception ex)
-            {
-                errorx("DownloadWebpage ERROR Url=" + URL);
-                errorx("DownloadWebpage ERROR " + ex.Message);
-            }
-            return web;
-        }
-        internal static void String2File(string data, string file)
-        {
-            byte[] tmparray;
-            tmparray = Encoding.Default.GetBytes(data);
-            FileStream writex = new FileStream(file, FileMode.Create);
-            writex.Write(tmparray, 0, tmparray.Length);
-            writex.Close();
-        }
-        public static string File2String(string file)
-        {
-            int a = 0;
-            int dateilänge = 0;
-            string data = null;
-            byte[] tmparray = null;
-            FileStream readx = new FileStream(file, FileMode.Open);
-            dateilänge = Convert.ToInt32(readx.Length);
-            tmparray = new byte[dateilänge];
-            a = readx.Read(tmparray, 0, dateilänge);
-            readx.Close();
-            data = Encoding.Default.GetString(tmparray);
-            return data;
+            return HttpUtility.UrlEncode(text ?? "", Encoding.Default);
         }
 
-        internal static void DownloadFile(string URL, string file, int timeout = 500)
+        // "host:port" -> host, port (ohne Port -> defaultPort)
+        internal static void SplitServer(string server, int defaultPort, out string host, out int port)
         {
-            string data = "";
-            data= DownloadWebpage(URL, timeout);
-            String2File(data, file);
+            host = server ?? "";
+            port = defaultPort;
+            int pos = host.IndexOf(":");
+            if (pos > 0 && host.IndexOf(":", pos + 1) < 0)
+            {
+                int p = VB.Val(VB.Mid(host, pos + 1));
+                if (p > 0) port = p;
+                host = VB.Left(host, pos);
+            }
         }
 
         internal static void debugx(string text)
@@ -239,26 +243,34 @@ namespace myCTI2
         internal static void debugx(int tr, string text)
         {
             if ((tr & trace) > 0 | (tr == 0))
+                appendLog("trace.txt", text);
+        }
+
+        internal static void errorx(string text)
+        {
+            appendLog("error.txt", text);
+        }
+
+        // threadsicher, bei mehr als 5 MB wird die Datei nach *.old verschoben
+        private static void appendLog(string file, string text)
+        {
+            lock (logLock)
             {
                 try
                 {
-                    File.AppendAllText(Application.StartupPath + @"\trace.txt", DateTime.Now.ToLongTimeString() + ":" + text + "\r\n");
+                    string path = Path.Combine(Application.StartupPath, file);
+                    FileInfo fi = new FileInfo(path);
+                    if (fi.Exists && fi.Length > maxLogSize)
+                    {
+                        File.Delete(path + ".old");
+                        File.Move(path, path + ".old");
+                    }
+                    File.AppendAllText(path, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + text + "\r\n");
                 }
                 catch
                 {
                 }
             }
-        }
-
-        internal static void errorx(string text)
-        {
-                 try
-                {
-                    File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + ":" + text + "\r\n");
-                }
-                catch
-                {
-                }
         }
 
         #endregion

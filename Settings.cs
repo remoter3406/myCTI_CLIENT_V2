@@ -1,8 +1,5 @@
-﻿using Microsoft.Win32;
-using System;
-using System.IO;
-using System.Net;
-using System.Web;
+﻿using System;
+using System.Text;
 using System.Windows.Forms;
 
 namespace myCTI2
@@ -20,25 +17,25 @@ namespace myCTI2
         private string cykeyfire;
         private string cymonitor;
         private string doubleClickLink;
-        private bool isNTLM;
+        private CtiServer web;
         #endregion
 
         #region " Form "
-        public Settings(int Xuser, bool NTLM, string company)
+        public Settings(int Xuser, CtiServer web, string company)
         {
             InitializeComponent();
 
-            isNTLM = NTLM;
+            this.web = web;
             userx = Xuser;
-            user = RegLoad("user", "");
-            password = RegLoad("password", "");
-            ssl = RegLoad("ssl", "http");
-            server = RegLoad("server", "");
-            keycode = RegLoad("keycodeRelease", "29");
-            hotkey = RegLoad("hotkey", "Y");
-            cykeyfire = RegLoad("CyKeyfire", "1");
-            cymonitor = RegLoad("CyMonitor", "");
-            doubleClickLink = RegLoad("DoubleClickLink", "");
+            user = LocalReg.Load("user", "");
+            password = LocalReg.Load("password", "");
+            ssl = LocalReg.Load("ssl", "http");
+            server = LocalReg.Load("server", "");
+            keycode = LocalReg.Load("keycodeRelease", "29");
+            hotkey = LocalReg.Load("hotkey", "Y");
+            cykeyfire = LocalReg.Load("CyKeyfire", "1");
+            cymonitor = LocalReg.Load("CyMonitor", "");
+            doubleClickLink = LocalReg.Load("DoubleClickLink", "");
 
             if (VB.Left(company, 3) != "KTC")
             {
@@ -97,7 +94,7 @@ namespace myCTI2
                 textBox10.Text = RegLoadXtra("url5");
                 textBox11.Text = RegLoadXtra("text6");
                 textBox12.Text = RegLoadXtra("url6");
-                string styles = getWeb("getstylelist").Replace("\r","");
+                string styles = web.Get("getstylelist").Replace("\r","");
                 string style = RegLoadStyle();
                 if (style == "") style = "Default";
                 string[] sx = styles.Split('\n');
@@ -109,8 +106,8 @@ namespace myCTI2
                     if (tmp != "") comboBoxStyle.Items.Add(tmp);
                 }
                 comboBoxStyle.Text = style;
-                textBoxZiel1.Text = getWeb("cti.pl?myprofile=1&myziel=get").Replace("\r\n","");
-                textBoxZiel2.Text = getWeb("cti.pl?myprofile=2&myziel=get").Replace("\r\n", "");
+                textBoxZiel1.Text = web.Get("cti.pl?myprofile=1&myziel=get").Replace("\r\n","");
+                textBoxZiel2.Text = web.Get("cti.pl?myprofile=2&myziel=get").Replace("\r\n", "");
                 textBoxKampagne.Text = RegLoadXtra("kampagneduwa");
                 textBoxSecondPhone.Text = RegLoadXtra("secondphoneduwa");
                 textBoxMailAddress.Text = RegLoadXtra("EmailAdr");
@@ -157,8 +154,8 @@ namespace myCTI2
                 string style = comboBoxStyle.Text.Replace("Default","");
                 RegSaveStyle(style);
 
-                getWeb("cti.pl?myprofile=1&myziel=" + textBoxZiel1.Text);
-                getWeb("cti.pl?myprofile=2&myziel=" + textBoxZiel2.Text);
+                web.Get("cti.pl?myprofile=1&myziel=" + TOOL.UrlEnc(textBoxZiel1.Text));
+                web.Get("cti.pl?myprofile=2&myziel=" + TOOL.UrlEnc(textBoxZiel2.Text));
                 RegSaveXtra("kampagneduwa", textBoxKampagne.Text);
                 RegSaveXtra("secondphoneduwa", textBoxSecondPhone.Text);
 
@@ -166,33 +163,33 @@ namespace myCTI2
                 RegSaveXtra("deflect2", textBoxDeflect2.Text);
                 RegSaveXtra("deflect3", textBoxDeflect3.Text);
             }
-            RegSave("keycodeRelease", keycodeTrennen.Text);
-            RegSave("hotkey", hotkeyDial.Text.ToUpper());
-            RegSave("DoubleClickLink", textBoxDoubleKlick.Text);
+            LocalReg.Save("keycodeRelease", keycodeTrennen.Text);
+            LocalReg.Save("hotkey", hotkeyDial.Text.ToUpper());
+            LocalReg.Save("DoubleClickLink", textBoxDoubleKlick.Text);
 
             if (checkBoxVDS.Checked == true)
-                RegSave("CyKeyfire", "1");
+                LocalReg.Save("CyKeyfire", "1");
             else
-                RegSave("CyKeyfire", "0");
+                LocalReg.Save("CyKeyfire", "0");
 
             if (radioButtonVDS1.Checked == true)
-                RegSave("CyMonitor", "0");
+                LocalReg.Save("CyMonitor", "0");
             else if (radioButtonVDS2.Checked == true)
-                RegSave("CyMonitor", "1");
+                LocalReg.Save("CyMonitor", "1");
             else if (radioButtonVDS3.Checked == true)
-                RegSave("CyMonitor", "2");
+                LocalReg.Save("CyMonitor", "2");
             else
-                RegSave("CyMonitor", "");
+                LocalReg.Save("CyMonitor", "");
 
-            RegSave("server", textBoxServerIP.Text);
+            LocalReg.Save("server", textBoxServerIP.Text);
             if (radioButtonHttps.Checked == true)
-                RegSave("ssl", "https");
+                LocalReg.Save("ssl", "https");
             else
-                RegSave("ssl", "http");
+                LocalReg.Save("ssl", "http");
 
-            RegSave("user", textBoxUser.Text);
+            LocalReg.Save("user", textBoxUser.Text);
             if (textBoxPassword.Text != new string('*', textBoxPassword.Text.Length))
-                    RegSave("password", textBoxPassword.Text);
+                    LocalReg.Save("password", textBoxPassword.Text);
 
             Cursor.Current = Cursors.Default;
 
@@ -204,95 +201,23 @@ namespace myCTI2
         }
         #endregion
 
-        #region " WebClient "
-        private string getWeb(string url, bool noErrFile = false)
-        {
-            // debugx(1, "getWeb url=" + url)
-            ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptCert);
-            HttpWebRequest request;
-            CredentialCache mycache = new CredentialCache();
-            url = ssl + "://" + server + "/" + url;
-            request = (HttpWebRequest)WebRequest.Create(url);
-            if (isNTLM == true)
-                request.Credentials = CredentialCache.DefaultNetworkCredentials;
-            else
-            {
-                mycache.Add(new Uri(url), "NTLM", new NetworkCredential(user, password));
-                request.Credentials = mycache;
-            }
-            request.AllowAutoRedirect = true;
-            request.Timeout = 5000;
-
-            HttpWebResponse response;
-            string responseFromServer = "";
-            try
-            {
-                response = (HttpWebResponse)request.GetResponse();
-                Stream dataStream = response.GetResponseStream();
-                StreamReader reader = new StreamReader(dataStream, System.Text.Encoding.Default);
-                responseFromServer = reader.ReadToEnd();
-                reader.Close();
-                dataStream.Close();
-                response.Close();
-            }
-            // webOK = True
-            catch (Exception ex)
-            {
-                if (ex.Message.IndexOf("Timeout") >= 0)
-                {
-                }
-                if (noErrFile == false)
-                    File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " GetURL error:" + ex.Message + "\r");
-            }
-            // debugx(2, "getWeb response=" + responseFromServer)
-
-            return responseFromServer;
-        }
-        private bool AcceptCert(object sender, System.Security.Cryptography.X509Certificates.X509Certificate cert, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors errors)
-        {
-            return true;
-        }
-        #endregion
-
-        #region " Registry "
-        private void RegSave(string var, string para)
-        {
-            RegistryKey MeinKey;
-            MeinKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AB Server", true);
-            MeinKey.SetValue(var, para);
-            MeinKey.Close();
-        }
-        private string RegLoad(string var, string defaultx = "")
-        {
-            RegistryKey MeinKey;
-            MeinKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AB Server", true);
-            if (MeinKey == null)
-                MeinKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\AB Server");
-            return MeinKey.GetValue(var, defaultx).ToString();
-        }
+        #region " Server Registry "
+        // Werte werden UTF-8 kodiert gesendet (wie bisher in diesem Dialog)
         public string RegLoadXtra(string key)
         {
-            string var = @"CTI\" + "user" + userx.ToString() + @"\CTI" + key;
-            string tmp = getWeb("action?cmd=getreg&var=" + HttpUtility.UrlEncode(var));
-            if (VB.Right(tmp, 2) == "\r\n")
-                tmp = VB.Left(tmp, tmp.Length - 2);
-            return tmp;
+            return web.GetReg(@"CTI\user" + userx.ToString() + @"\CTI" + key);
         }
         public void RegSaveXtra(string key, string wert)
         {
-            string var = @"CTI\" + "user" + userx.ToString() + @"\CTI" + key;
-            getWeb("action?cmd=setreg&var=" + HttpUtility.UrlEncode(var) + "&wert=" + HttpUtility.UrlEncode(wert));
+            web.SetReg(@"CTI\user" + userx.ToString() + @"\CTI" + key, wert, Encoding.UTF8);
         }
         public string RegLoadStyle()
         {
-            string var = "security\\" + "user" + userx.ToString() + "\\style";
-            string tmp = getWeb("action?cmd=getreg&var=" + HttpUtility.UrlEncode(var)).Replace("\n","").Replace("\r", "");
-            return tmp;
+            return web.GetReg(@"security\user" + userx.ToString() + @"\style").Replace("\n", "").Replace("\r", "");
         }
         public void RegSaveStyle(string wert)
         {
-            string var = "security\\" + "user" + userx.ToString() + "\\style";
-            getWeb("action?cmd=setreg&var=" + HttpUtility.UrlEncode(var) + "&wert=" + HttpUtility.UrlEncode(wert));
+            web.SetReg(@"security\user" + userx.ToString() + @"\style", wert, Encoding.UTF8);
         }
         #endregion
     }

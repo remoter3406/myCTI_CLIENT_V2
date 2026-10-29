@@ -1,17 +1,12 @@
-﻿// Use only ONE of these Main methods.
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
-using System.Text;
-using System.Runtime.ExceptionServices;
-using Microsoft.Win32;
-using System.Windows.Forms;
-using System.Threading;
-using myCTI2;
 using System.Net;
 using System.Net.Sockets;
-using System.Security;
+using System.Reflection;
+using System.Text;
+using System.Windows.Forms;
+using myCTI2;
 
 public static class Program
 {
@@ -21,76 +16,16 @@ public static class Program
         string appProcessName = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
         Process[] RunningProcesses = Process.GetProcessesByName(appProcessName);
 
-        RegistryKey MeinKey;
-        MeinKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AB Server", true);
-        if (MeinKey == null)
-            MeinKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\AB Server");
-        if (MeinKey.GetValue("copyStart", "").ToString() == "1")
+        if (LocalReg.Load("copyStart", "") == "1")
         {
-            MeinKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AB Server", true);
-            MeinKey.SetValue("copyStart", "0");
-            MeinKey.Close();
-            //Application.EnableVisualStyles();
+            // Neustart aus Documents\CTI nach dem Kopieren
+            LocalReg.Save("copyStart", "0");
             Application.Run(new TrayContext());
         }
         else if (RunningProcesses.Length <= 1)
         {
-            string netz = Application.ExecutablePath.ToLower();
-            int pos = netz.IndexOf(@"\cti\");
-            if (pos < 0)
-            {
-                // TOOL.debugx("Datei liegt nicht im CTI Ordner pos=" + pos.ToString() + " netz=" + netz)
-                System.Resources.ResourceManager rm = new System.Resources.ResourceManager(myCTI2.Properties.Resources.token, Assembly.GetExecutingAssembly());
-                string token = VB.Mid(rm.BaseName, 16, 40);
-                pos = token.IndexOf("#");
-                if (pos > 0)
-                {
-                    string tmp = VB.Mid(token, pos + 1);
-                    token = VB.Left(token, pos).Replace(":80", "").Replace(":443", "");
-                    // copy exe and set server
-                    // TOOL.debugx("Set Server: " + token)
-                    MeinKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AB Server", true);
-                    MeinKey.SetValue("server", token);
-                    MeinKey.Close();
-                    pos = tmp.IndexOf("#");
-                    if (pos > 0)
-                    {
-                        // TOOL.debugx("Set SSL: " + Left(tmp, pos - 1))
-                        MeinKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AB Server", true);
-                        MeinKey.SetValue("ssl", VB.Left(tmp, pos));
-                        MeinKey.Close();
-                    }
-                    string myDoc = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Documents";
-                    try
-                    {
-                        Directory.CreateDirectory(myDoc + "\\CTI");
-                    }
-                    catch
-                    {
-                    }
-                    bool copyOK = false;
-                    try
-                    {
-                        File.Copy(Application.ExecutablePath, myDoc + "\\CTI\\myCTI.exe");
-                        copyOK = true;
-                    }
-                    catch
-                    {
-                    }
-                    if (copyOK == true)
-                    {
-                        // TOOL.debugx("Set copyStart")
-                        MeinKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\AB Server", true);
-                        MeinKey.SetValue("copyStart", "1");
-                        MeinKey.Close();
-                        Process.Start(myDoc + "\\CTI\\myCTI.exe", "");
-                        System.Environment.Exit(0);
-                    }
-                }
-            }
-
-
-            // Application.EnableVisualStyles()
+            if (Application.ExecutablePath.ToLower().IndexOf(@"\cti\") < 0)
+                installFromDownload();
 
             try
             {
@@ -108,39 +43,63 @@ public static class Program
             }
 
             Application.Run(new TrayContext());
-
         }
         else
         {
-            string ziel = "";
-            try
-            {
-                ziel = cmdArgs[0];
-            }
-            catch
-            {
-            }
+            // läuft schon: Ziel an die laufende Instanz schicken
+            string ziel = cmdArgs.Length > 0 ? cmdArgs[0] : "";
             udpSend("CSTA7" + ziel);
         }
+    }
+
+    // Exe liegt nicht im CTI Ordner: Server aus dem eingebetteten Token übernehmen,
+    // nach Documents\CTI kopieren und von dort neu starten
+    private static void installFromDownload()
+    {
+        // Token "FKtokenFKstartFK<server>#<ssl>#...FKtokenFKendeFK" wird vom Server beim Download eingesetzt
+        System.Resources.ResourceManager rm = new System.Resources.ResourceManager(myCTI2.Properties.Resources.token, Assembly.GetExecutingAssembly());
+        string token = VB.Mid(rm.BaseName, 16, 40);
+        int pos = token.IndexOf("#");
+        if (pos <= 0)
+            return;
+
+        string tmp = VB.Mid(token, pos + 1);
+        LocalReg.Save("server", VB.Left(token, pos).Replace(":80", "").Replace(":443", ""));
+        pos = tmp.IndexOf("#");
+        if (pos > 0)
+            LocalReg.Save("ssl", VB.Left(tmp, pos));
+
+        string ctiDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Documents\\CTI";
+        string target = ctiDir + "\\myCTI.exe";
+        try
+        {
+            Directory.CreateDirectory(ctiDir);
+            // vorhandene (ältere) Version überschreiben
+            File.Copy(Application.ExecutablePath, target, true);
+        }
+        catch (Exception ex)
+        {
+            TOOL.errorx("installFromDownload copy error: " + ex.Message);
+            return;
+        }
+        LocalReg.Save("copyStart", "1");
+        Process.Start(target, "");
+        System.Environment.Exit(0);
     }
 
     private static void udpSend(string text)
     {
         try
         {
-            UdpClient udpClient = new UdpClient();
-            byte[] bytCommand = new byte[] { };
-            int pRet;
-            IPAddress GLOIP = IPAddress.Parse("127.0.0.1");
-            int GLOINTPORT = 31312;
-            udpClient.Connect(GLOIP, GLOINTPORT);
-            bytCommand = Encoding.Default.GetBytes(text);
-            pRet = udpClient.Send(bytCommand, bytCommand.Length);
+            using (UdpClient udpClient = new UdpClient())
+            {
+                udpClient.Connect(IPAddress.Loopback, 31312);
+                byte[] bytCommand = Encoding.Default.GetBytes(text);
+                udpClient.Send(bytCommand, bytCommand.Length);
+            }
         }
         catch
         {
         }
     }
 }
-
-

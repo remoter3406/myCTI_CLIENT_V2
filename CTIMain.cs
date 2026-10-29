@@ -96,7 +96,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN Form1_Load error:" + ex.Message + "\r");
+                TOOL.errorx("CTI MAIN Form1_Load error: " + ex.Message);
             }
         }
 
@@ -116,7 +116,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN OnFormClosing error:" + ex.Message + "\r");
+                TOOL.errorx("CTI MAIN OnFormClosing error: " + ex.Message);
             }
         }
 
@@ -137,7 +137,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN setNew error:" + ex.Message + "\r");
+                TOOL.errorx("CTI MAIN setNew error: " + ex.Message);
             }
         }
         public void OnTop()
@@ -152,7 +152,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN OnTop error:" + ex.Message + "\r");
+                TOOL.errorx("CTI MAIN OnTop error: " + ex.Message);
             }
         }
         public void destroy()
@@ -164,7 +164,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN destroy error:" + ex.Message + "\r");
+                TOOL.errorx("CTI MAIN destroy error: " + ex.Message);
             }
         }
         public void RDPon()
@@ -202,13 +202,14 @@ namespace myCTI2
                     else
                     {
                         Microsoft.Web.WebView2.WinForms.WebView2 browser = new Microsoft.Web.WebView2.WinForms.WebView2();
+                        browser.Dock = DockStyle.Fill;
                         Form f = new Form();
                         f.Icon = this.Icon;
                         f.Size = new Size(1500, 900);
                         f.Controls.Add(browser);
-                        f.Controls[0].Size = new Size(1484, 900);
-                        browser.CoreWebView2.Navigate(url);
                         f.Show();
+                        // CoreWebView2 ist hier noch null, Source startet die Initialisierung und navigiert danach
+                        browser.Source = new Uri(url);
                     }
                 }
             }
@@ -275,7 +276,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN CTIMain_SizeChanged error:" + ex.Message + "\r");
+                TOOL.errorx("CTI MAIN CTIMain_SizeChanged error: " + ex.Message);
             }
         }
         private void CTIMain_KeyDown(object sender, KeyEventArgs e)
@@ -353,7 +354,7 @@ namespace myCTI2
         #region " CoreWebView2 "
         private void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
-            System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", "\r\n" + DateTime.Now.ToLongTimeString() + "  WebView2_CoreWebView2InitializationCompleted start" + "\r\n\r\n");
+            TOOL.debugx("WebView2_CoreWebView2InitializationCompleted start");
 
             webView2.CoreWebView2.ServerCertificateErrorDetected += CoreWebView2_ServerCertificateErrorDetected;
             webView2.CoreWebView2.ContainsFullScreenElementChanged += CoreWebView2_ContainsFullScreenElementChanged;
@@ -365,7 +366,7 @@ namespace myCTI2
         }
         private void CoreWebView2_ServerCertificateErrorDetected(object sender, CoreWebView2ServerCertificateErrorDetectedEventArgs e)
         {
-            System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", "\r\n" + DateTime.Now.ToLongTimeString() + "  CoreWebView2_ServerCertificateErrorDetected " + e.ErrorStatus + "\r\n\r\n");
+            TOOL.debugx("CoreWebView2_ServerCertificateErrorDetected " + e.ErrorStatus);
             CoreWebView2Certificate certificate = e.ServerCertificate;
             e.Action = CoreWebView2ServerCertificateErrorAction.AlwaysAllow;
         }
@@ -398,13 +399,13 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN GeckoWebBrowser1_Navigated error:" + ex.Message + "\r");
+                TOOL.errorx("CTI MAIN GeckoWebBrowser1_Navigated error: " + ex.Message);
             }
         }
 
         private void CoreWebView2_BasicAuthenticationRequested(object sender, CoreWebView2BasicAuthenticationRequestedEventArgs e)
         {
-            System.IO.File.AppendAllText(Application.StartupPath + @"\trace.txt", "\r\n" + DateTime.Now.ToLongTimeString() + "  CoreWebView2_BasicAuthenticationRequested start" + "\r\n\r\n");
+            TOOL.debugx("CoreWebView2_BasicAuthenticationRequested start");
             // wird nicht bei SSO aufgerufen, kann also immer ausgefüllt werden
             if (user != "")
             {
@@ -447,7 +448,7 @@ namespace myCTI2
             }
             catch (Exception ex)
             {
-                File.AppendAllText(Application.StartupPath + @"\error.txt", DateTime.Now.ToLongTimeString() + " CTI MAIN Timer1_Tick error:" + ex.Message + "\r");
+                TOOL.errorx("CTI MAIN Timer1_Tick error: " + ex.Message);
             }
         }
 

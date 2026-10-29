@@ -19,6 +19,9 @@ using System.Runtime.InteropServices;
 // COM aus zugreifen müssen, sollten Sie das ComVisible-Attribut für diesen Typ auf "True" festlegen.
 [assembly: ComVisible(false)]
 
+// Testprojekt darf interne Helfer (TOOL) aufrufen
+[assembly: InternalsVisibleTo("myCTI.Tests")]
+
 // Die folgende GUID bestimmt die ID der Typbibliothek, wenn dieses Projekt für COM verfügbar gemacht wird
 [assembly: Guid("108a5a7b-2bf9-462a-8d89-a0d16a07f342")]
 
