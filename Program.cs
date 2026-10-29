@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 using myCTI2;
 
@@ -13,16 +14,15 @@ public static class Program
     [STAThread]
     public static void Main(string[] cmdArgs)
     {
-        string appProcessName = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
-        Process[] RunningProcesses = Process.GetProcessesByName(appProcessName);
-
         if (LocalReg.Load("copyStart", "") == "1")
         {
-            // Neustart aus Documents\CTI nach dem Kopieren
+            // Neustart aus Documents\CTI nach dem Kopieren; der kopierende Prozess
+            // hält den Mutex evtl. noch kurz, deshalb warten statt prüfen
             LocalReg.Save("copyStart", "0");
+            acquireSingleInstance(5000);
             Application.Run(new TrayContext());
         }
-        else if (RunningProcesses.Length <= 1)
+        else if (acquireSingleInstance(0) && !otherProcessRunning())
         {
             if (Application.ExecutablePath.ToLower().IndexOf(@"\cti\") < 0)
                 installFromDownload();
@@ -50,6 +50,39 @@ public static class Program
             string ziel = cmdArgs.Length > 0 ? cmdArgs[0] : "";
             udpSend("CSTA7" + ziel);
         }
+    }
+
+    // Einzelinstanz rechnerweit über einen Mutex, unabhängig vom Dateinamen der Exe
+    // (z.B. "myCTI (1).exe" nach erneutem Download). Muss bis Programmende referenziert bleiben.
+    private static Mutex instanceMutex;
+
+    private static bool acquireSingleInstance(int waitMs)
+    {
+        try
+        {
+            instanceMutex = new Mutex(false, @"Global\myCTI_Client");
+            try
+            {
+                return instanceMutex.WaitOne(waitMs);
+            }
+            catch (AbandonedMutexException)
+            {
+                // Vorgänger wurde beendet ohne freizugeben (z.B. nach dem Kopieren)
+                return true;
+            }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Mutex gehört einer Instanz eines anderen Benutzers
+            return false;
+        }
+    }
+
+    // zusätzlich: ältere Versionen ohne Mutex unter gleichem Prozessnamen erkennen
+    private static bool otherProcessRunning()
+    {
+        string appProcessName = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
+        return Process.GetProcessesByName(appProcessName).Length > 1;
     }
 
     // Exe liegt nicht im CTI Ordner: Server aus dem eingebetteten Token übernehmen,

@@ -216,6 +216,12 @@ namespace myCTI2
             isUnMute = false;
         }
 
+        // Version aus AssemblyInfo, z.B. "2.3.0"
+        internal static string AppVersion
+        {
+            get { return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(3); }
+        }
+
         // URL Parameter kodieren, ANSI wie der Rest der Serverkommunikation
         internal static string UrlEnc(string text)
         {

@@ -68,6 +68,8 @@ namespace myCTI2
         public CTIMain()
         {
             InitializeComponent();
+            // Titel wird als Version an den Server gemeldet, Format beibehalten
+            this.Text = "myCTI Client V" + TOOL.AppVersion;
             init();
         }
 

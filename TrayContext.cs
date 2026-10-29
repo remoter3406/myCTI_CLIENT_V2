@@ -762,6 +762,8 @@ namespace myCTI2
             Settings us = new Settings(userx, web);
             us.ShowDialog();
             loadKeycodeRelease();
+            if (SD != null)
+                SD.newHotkey();   // geänderte Wähltaste sofort registrieren
             if (web.User != LocalReg.Load("user", "") | web.Password != LocalReg.Load("password", "") | web.Ssl != LocalReg.Load("ssl", "http") | web.Server != LocalReg.Load("server", ""))
             {
                 web.User = LocalReg.Load("user", "");

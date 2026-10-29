@@ -50,7 +50,7 @@ namespace myCTI2
                 e.Cancel = true;
         }
 
-        private void newHotkey()
+        public void newHotkey()
         {
             string shortcut = LocalReg.Load("hotkey", "Y");
             registerHotkey(HOTKEY_DIAL, (uint)VB.Asc(shortcut));

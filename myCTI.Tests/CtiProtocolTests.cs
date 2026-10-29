@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -222,6 +222,14 @@ namespace myCTI.Tests
         {
             Assert.AreEqual("a+b%26c%3d", TOOL.UrlEnc("a b&c="));
             Assert.AreEqual("", TOOL.UrlEnc(null));
+        }
+
+        [TestMethod]
+        public void AppVersionAusAssemblyInfo()
+        {
+            Version v = typeof(TOOL).Assembly.GetName().Version;
+            Assert.AreEqual(v.Major + "." + v.Minor + "." + v.Build, TOOL.AppVersion);
+            StringAssert.Matches(TOOL.AppVersion, new System.Text.RegularExpressions.Regex(@"^\d+\.\d+\.\d+$"));
         }
     }
 }
