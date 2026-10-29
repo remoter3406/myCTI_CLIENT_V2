@@ -250,7 +250,7 @@ namespace myCTI2
                 using (UdpClient udpClient = new UdpClient())
                 {
                     udpClient.Connect(IPAddress.Loopback, 31311);
-                    byte[] bytCommand = Encoding.Default.GetBytes(text);
+                    byte[] bytCommand = TOOL.Ansi.GetBytes(text);
                     udpClient.Send(bytCommand, bytCommand.Length);
                 }
             }
@@ -282,7 +282,7 @@ namespace myCTI2
         }
         private Stream GenerateStreamFromString(string s)
         {
-            return new MemoryStream(Encoding.Default.GetBytes(s));
+            return new MemoryStream(TOOL.Ansi.GetBytes(s));
         }
         #endregion
 

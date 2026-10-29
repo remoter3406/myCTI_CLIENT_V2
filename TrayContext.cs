@@ -7,6 +7,7 @@ using System.Management;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace myCTI2
@@ -48,7 +49,8 @@ namespace myCTI2
         private System.Windows.Forms.Timer myTimer = new System.Windows.Forms.Timer();
         private static bool red = false;
         private DateTime lastServerCheck = DateTime.MinValue;
-        private int serverCheckRunning = 0;
+        private bool serverCheckRunning = false;
+        private bool rdpReportRunning = false;
         private Control uiInvoker;
         private NotifyIcon Tray;
         private ContextMenuStrip MainMenu;
@@ -89,8 +91,6 @@ namespace myCTI2
             uiInvoker = new Control();
             IntPtr h = uiInvoker.Handle;
 
-            CtiServer.AcceptAllCertificates();
-
             myTimer.Tick += new EventHandler(myTimer_Tick);
             myTimer.Interval = 500;
 
@@ -124,7 +124,7 @@ namespace myCTI2
             Init_contex_menu();
             Init_tray();
 
-            setAudio();
+            _ = setAudioAsync();
 
             Tray.Visible = true;
             string x = LocalReg.Load("udp_window_x1", "0");
@@ -265,7 +265,7 @@ namespace myCTI2
             {
             }
 
-            if (RegLoadLostCall() != "")
+            if (web.GetReg(lostCallKey()) != "")
                 blinken = true;
 
             CT.setZPButton(getZeitplan());
@@ -322,25 +322,18 @@ namespace myCTI2
             SD.Show();
         }
 
-        private void setAudio()
+        private async Task setAudioAsync()
         {
-            string audiofile = RegLoadStyle();
+            string audiofile = (await web.GetRegAsync(@"security\user" + userx.ToString() + @"\style")).Replace("\n", "").Replace("\r", "");
             if (audiofile == "") audiofile = "default";
-            TOOL.audio = loadWav("css/" + audiofile + ".wav");
-            TOOL.ringAudio = loadWav("css/" + audiofile + "_ring.wav");
+            TOOL.audio = await loadWavAsync("css/" + audiofile + ".wav");
+            TOOL.ringAudio = await loadWavAsync("css/" + audiofile + "_ring.wav");
         }
-        private string loadWav(string path)
+        private async Task<string> loadWavAsync(string path)
         {
-            try
-            {
-                string wav = web.Get(path);
-                if (wav.IndexOf("FILE NOT FOUND") >= 0) return "";
-                return wav;
-            }
-            catch
-            {
-                return "";
-            }
+            string wav = await web.GetAsync(path);
+            if (wav.IndexOf("FILE NOT FOUND") >= 0) return "";
+            return wav;
         }
         private void loadKeycodeRelease()
         {
@@ -357,23 +350,9 @@ namespace myCTI2
         #region " Event UDP / LockUnlock"
         public void checkLockUnlock(object sender, SessionSwitchEventArgs e)
         {
-            try
-            {
-                if (e.Reason == SessionSwitchReason.SessionLock)
-                {
-                    web.Get("SetUDP?status=locked");
-                    CT.locked = true;
-                }
-                else
-                {
-                    web.Get("SetUDP?status=unlocked");
-                    CT.locked = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                TOOL.errorx("checkLockUnlock error: " + ex.Message);
-            }
+            bool locked = e.Reason == SessionSwitchReason.SessionLock;
+            CT.locked = locked;
+            _ = web.GetAsync(locked ? "SetUDP?status=locked" : "SetUDP?status=unlocked");
         }
 
         // läuft im UDP Thread
@@ -428,30 +407,23 @@ namespace myCTI2
             }
         }
 
-        private void checkServer()
+        // async void: Aufruf aus dem UI-Timer, Fortsetzung läuft wieder im UI-Thread
+        private async void checkServer()
         {
-            // Prüfung im Hintergrund, damit die Oberfläche bei nicht erreichbarem Server nicht hängt
-            if (Interlocked.Exchange(ref serverCheckRunning, 1) == 1)
+            if (serverCheckRunning)
                 return;
-            string host;
-            int port;
-            TOOL.SplitServer(web.Server, web.Ssl == "https" ? 443 : 80, out host, out port);
-            ThreadPool.QueueUserWorkItem(_ =>
+            serverCheckRunning = true;
+            try
             {
-                bool ok = isServerReachable(host, port);
-                try
-                {
-                    uiInvoker.BeginInvoke(new Action(() =>
-                    {
-                        setServerState(ok);
-                        serverCheckRunning = 0;
-                    }));
-                }
-                catch
-                {
-                    serverCheckRunning = 0;
-                }
-            });
+                string host;
+                int port;
+                TOOL.SplitServer(web.Server, web.Ssl == "https" ? 443 : 80, out host, out port);
+                setServerState(await isServerReachableAsync(host, port));
+            }
+            finally
+            {
+                serverCheckRunning = false;
+            }
         }
         private void setServerState(bool ok)
         {
@@ -466,17 +438,15 @@ namespace myCTI2
             }
             red = false;
         }
-        private bool isServerReachable(string host, int port)
+        private static async Task<bool> isServerReachableAsync(string host, int port)
         {
             // TCP Verbindung zum Webserver statt ICMP Ping (Ping wird oft von Firewalls geblockt)
             try
             {
                 using (TcpClient tcp = new TcpClient())
+                using (CancellationTokenSource cts = new CancellationTokenSource(3000))
                 {
-                    IAsyncResult ar = tcp.BeginConnect(host, port, null, null);
-                    if (!ar.AsyncWaitHandle.WaitOne(3000))
-                        return false;
-                    tcp.EndConnect(ar);
+                    await tcp.ConnectAsync(host, port, cts.Token);
                     return true;
                 }
             }
@@ -485,7 +455,7 @@ namespace myCTI2
                 return false;
             }
         }
-        private void checkRdp()
+        private async void checkRdp()
         {
             string rdpName = GetTerminalServerClientName();
             if (rdpName != "")
@@ -493,9 +463,12 @@ namespace myCTI2
             else
                 CT.RDPoff();
 
-            if (RDP != rdpName)
+            if (RDP == rdpName || rdpReportRunning)
+                return;
+            rdpReportRunning = true;
+            try
             {
-                string erg = web.Get("SetUDP?RDP=" + TOOL.UrlEnc(rdpName));
+                string erg = await web.GetAsync("SetUDP?RDP=" + TOOL.UrlEnc(rdpName));
                 if (erg.Length > 0 & erg.Length < 3)
                 {
                     RDP = rdpName;
@@ -505,6 +478,10 @@ namespace myCTI2
                 {
                     TOOL.errorx("myTimer_Tick SetUDP?RDP=" + erg);
                 }
+            }
+            finally
+            {
+                rdpReportRunning = false;
             }
         }
         private void checkBlinken()
@@ -523,7 +500,7 @@ namespace myCTI2
         #endregion
 
         #region " Event Tray "
-        private void Tray_DoubleClick(object sender, System.EventArgs e)
+        private async void Tray_DoubleClick(object sender, System.EventArgs e)
         {
             if (web.WebOK == false)
             {
@@ -531,7 +508,7 @@ namespace myCTI2
                 return;
             }
             CT.OnTop();
-            string link = getLostCallUrl();
+            string link = await getLostCallUrlAsync();
             if (link != "" | !isNavigated) CT.navigate(link);
             TOOL.playAudio();
         }
@@ -566,14 +543,14 @@ namespace myCTI2
         {
             showPopupPositions();
         }
-        private void mnuSettingsForm_Click(object sender, System.EventArgs e)
+        private async void mnuSettingsForm_Click(object sender, System.EventArgs e)
         {
             ShowSettings();
-            CT.setKampagneButton(RegLoadServer("kampagneduwa"));
-            setAudio();
+            CT.setKampagneButton(await web.GetRegAsync(serverKey("kampagneduwa")));
+            await setAudioAsync();
             if (CT.WindowState != FormWindowState.Minimized)
             {
-                CT.navigate(getLostCallUrl());
+                CT.navigate(await getLostCallUrlAsync());
             }
             TOOL.playAudio();
         }
@@ -620,7 +597,7 @@ namespace myCTI2
                 if (e.Text.ToUpper().IndexOf("MONITOR") >= 0)
                 {
                     blinken = false;
-                    web.Get("sendudp?cmd=5&user=" + userx.ToString());
+                    _ = web.GetAsync("sendudp?cmd=5&user=" + userx.ToString());
                 }
             }
             catch (Exception ex)
@@ -641,15 +618,15 @@ namespace myCTI2
         }
         private void CT_ReleaseButton(object sender, EventArgs e)
         {
-            web.Get("cti.pl?button=" + keycodeRelease);
+            _ = web.GetAsync("cti.pl?button=" + keycodeRelease);
         }
         private void CT_SpeakerButton(object sender, EventArgs e)
         {
-            web.Get("cti.pl?button=21");
+            _ = web.GetAsync("cti.pl?button=21");
         }
         private void CT_SearchNumber(object sender, myEventArgs e)
         {
-            web.Get("sendudp?cmd=6&user=" + TOOL.UrlEnc(web.User) + "&text=" + TOOL.UrlEnc(e.Text));
+            _ = web.GetAsync("sendudp?cmd=6&user=" + TOOL.UrlEnc(web.User) + "&text=" + TOOL.UrlEnc(e.Text));
         }
         private void CT_NoValidUser(object sender, myEventArgs e)
         {
@@ -663,11 +640,11 @@ namespace myCTI2
         }
         private void CT_KampagneChecked(object sender, bool e)
         {
-            RegSaveServer("kampagneactive", e ? "1" : "0");
+            _ = web.SetRegAsync(serverKey("kampagneactive"), e ? "1" : "0");
         }
         private void CT_SecondPhoneChecked(object sender, bool e)
         {
-            RegSaveServer("secondphoneactive", e ? "1" : "0");
+            _ = web.SetRegAsync(serverKey("secondphoneactive"), e ? "1" : "0");
         }
         #endregion
 
@@ -679,7 +656,7 @@ namespace myCTI2
             if (!string.IsNullOrEmpty(def))
             {
                 if (def.LastIndexOf("I") < 0) def = "I" + def;
-                web.Get("cti.pl?deflect=" + CtiProtocol.UrlEncodeDial(def) + "&xid=" + TOOL.UrlEnc(e.Text2) + "&nst=" + TOOL.UrlEnc(e.Text3));
+                _ = web.GetAsync("cti.pl?deflect=" + CtiProtocol.UrlEncodeDial(def) + "&xid=" + TOOL.UrlEnc(e.Text2) + "&nst=" + TOOL.UrlEnc(e.Text3));
             }
         }
         #endregion
@@ -710,13 +687,8 @@ namespace myCTI2
                     text = convertUTF2HTML(VB.Mid(text, 1));
                     if (VB.Left(text, 1) == "2")
                     {
-                        // Abruf für VBA, Ergebnis in die Registry; im Hintergrund, damit die Oberfläche nicht blockiert
-                        string url = VB.Mid(text, 1);
-                        ThreadPool.QueueUserWorkItem(_ =>
-                        {
-                            vbaRegResultSave("");
-                            vbaRegResultSave(web.Get(url));
-                        });
+                        // Abruf für VBA, Ergebnis in die Registry; async, damit die Oberfläche nicht blockiert
+                        _ = vbaFetchAsync(VB.Mid(text, 1));
                     }
                     else
                     {
@@ -783,7 +755,7 @@ namespace myCTI2
         {
             string num = CtiProtocol.CleanDialNumber(number);
             if (CtiProtocol.IsDialable(num))
-                web.Get("cti.pl?dial=" + CtiProtocol.UrlEncodeDial(num));
+                _ = web.GetAsync("cti.pl?dial=" + CtiProtocol.UrlEncodeDial(num));
             CT.textBox1.Text = num;
         }
         private void ShutDown()
@@ -826,22 +798,28 @@ namespace myCTI2
             }
         }
 
+        private async Task vbaFetchAsync(string url)
+        {
+            vbaRegResultSave("");
+            vbaRegResultSave(await web.GetAsync(url));
+        }
+
         // serverseitige Einstellungen des aktuellen Benutzers
+        private string serverKey(string key)
+        {
+            return @"CTI\user" + userx.ToString() + @"\CTI" + key;
+        }
         private string RegLoadServer(string key)
         {
-            return web.GetReg(@"CTI\user" + userx.ToString() + @"\CTI" + key);
+            return web.GetReg(serverKey(key));
         }
         private void RegSaveServer(string key, string wert)
         {
-            web.SetReg(@"CTI\user" + userx.ToString() + @"\CTI" + key, wert);
+            web.SetReg(serverKey(key), wert);
         }
-        private string RegLoadLostCall()
+        private string lostCallKey()
         {
-            return web.GetReg(@"CTI\User" + userx.ToString() + @"\CTILostCall");
-        }
-        private string RegLoadStyle()
-        {
-            return web.GetReg(@"security\user" + userx.ToString() + @"\style").Replace("\n", "").Replace("\r", "");
+            return @"CTI\User" + userx.ToString() + @"\CTILostCall";
         }
 
         private string convertUTF2HTML(string unicodeString)
@@ -855,9 +833,9 @@ namespace myCTI2
             unicodeString = unicodeString.Replace("ß", "%DF");
             return unicodeString;
         }
-        private string getLostCallUrl()
+        private async Task<string> getLostCallUrlAsync()
         {
-            string url = CtiProtocol.BuildLostCallUrl(RegLoadLostCall());
+            string url = CtiProtocol.BuildLostCallUrl(await web.GetRegAsync(lostCallKey()));
             if (url != "")
                 return url;
             return LocalReg.Load("DoubleClickLink", "");

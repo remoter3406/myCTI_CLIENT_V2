@@ -15,7 +15,7 @@ namespace myCTI2
     {
         public static short Asc(string String)
         {
-            return Encoding.Default.GetBytes(String)[0];
+            return TOOL.Ansi.GetBytes(String)[0];
         }
         public static int Val(string String)
         {
@@ -138,6 +138,16 @@ namespace myCTI2
 
         private static bool isUnMute = false;
         private static readonly object logLock = new object();
+
+        // ANSI-Codepage des Systems (z.B. 1252). Unter .NET Framework war das Encoding.Default,
+        // unter .NET ist Encoding.Default UTF-8. Das Serverprotokoll (UDP, HTTP, WAV/Bild als String)
+        // braucht ANSI, damit jedes Byte 1:1 einem Zeichen entspricht.
+        internal static readonly Encoding Ansi = createAnsi();
+        private static Encoding createAnsi()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            return Encoding.GetEncoding(0);
+        }
         #endregion
 
         #region " Internal "
@@ -154,7 +164,7 @@ namespace myCTI2
         {
             try
             {
-                byte[] byteArray = Encoding.Default.GetBytes(audiostring);
+                byte[] byteArray = TOOL.Ansi.GetBytes(audiostring);
                 int byterate = BitConverter.ToInt32(new[] { byteArray[28], byteArray[29], byteArray[30], byteArray[31] }, 0);
                 int duration = (byteArray.Length - 8) / byterate;
 
@@ -225,7 +235,7 @@ namespace myCTI2
         // URL Parameter kodieren, ANSI wie der Rest der Serverkommunikation
         internal static string UrlEnc(string text)
         {
-            return HttpUtility.UrlEncode(text ?? "", Encoding.Default);
+            return HttpUtility.UrlEncode(text ?? "", TOOL.Ansi);
         }
 
         // "host:port" -> host, port (ohne Port -> defaultPort)

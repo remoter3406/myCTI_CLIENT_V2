@@ -14,6 +14,9 @@ public static class Program
     [STAThread]
     public static void Main(string[] cmdArgs)
     {
+        // Visual Styles, High-DPI und Standardschrift aus der Projektdatei (ApplicationHighDpiMode usw.)
+        ApplicationConfiguration.Initialize();
+
         if (LocalReg.Load("copyStart", "") == "1")
         {
             // Neustart aus Documents\CTI nach dem Kopieren; der kopierende Prozess
@@ -127,7 +130,7 @@ public static class Program
             using (UdpClient udpClient = new UdpClient())
             {
                 udpClient.Connect(IPAddress.Loopback, 31312);
-                byte[] bytCommand = Encoding.Default.GetBytes(text);
+                byte[] bytCommand = TOOL.Ansi.GetBytes(text);
                 udpClient.Send(bytCommand, bytCommand.Length);
             }
         }

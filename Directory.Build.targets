@@ -1,0 +1,12 @@
+<Project>
+
+  <!-- Gilt für alle Projekte im Repo (auch das Testprojekt, das WebView2 transitiv erbt):
+       Das WebView2-Paket referenziert auch seine WPF-DLL; die wird nicht gebraucht
+       und erzeugt einen WindowsBase-Versionskonflikt (MSB3277). -->
+  <Target Name="RemoveWebView2Wpf" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition="'%(Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

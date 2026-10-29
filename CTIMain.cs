@@ -75,7 +75,8 @@ namespace myCTI2
 
         private void init()
         {
-            string appdir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            // Assembly.Location ist bei einer Einzel-Exe leer, AppContext.BaseDirectory nicht
+            string appdir = AppContext.BaseDirectory;
             Directory.SetCurrentDirectory(appdir);
             try
             {

@@ -4,11 +4,13 @@ namespace myCTI2
 {
     public partial class InputBox : Form
     {
+        private const char passwordChar = '*';
+
         public InputBox(string prompt, string title, string defaultresponse, bool usePasswordChar = false)
         {
             InitializeComponent();
             if (usePasswordChar)
-                textBox1.PasswordChar = PasswordChar;
+                textBox1.PasswordChar = passwordChar;
             this.CancelButton = buttonAbbrechen;    // Wird ausgelöst, wenn ESC gedrückt wird
             this.AcceptButton = buttonOK;    // wird bei OK ausgelöst
             label1.Text = prompt;
@@ -17,57 +19,8 @@ namespace myCTI2
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
         }
 
-        private string _title;
-        public string Title
-        {
-            get
-            {
-                return _title;
-            }
-            set
-            {
-                _title = value;
-            }
-        }
-
-        private string _prompt;
-        public string Prompt
-        {
-            get
-            {
-                return _prompt;
-            }
-            set
-            {
-                _prompt = value;
-            }
-        }
-
-        private bool _usepasswordchar;
-        public bool UsePassWordChar
-        {
-            get
-            {
-                return _usepasswordchar;
-            }
-            set
-            {
-                _usepasswordchar = value;
-            }
-        }
-
-        private char _passwordChar = '*';
-        public char PasswordChar
-        {
-            get
-            {
-                return _passwordChar;
-            }
-            set
-            {
-                _passwordChar = value;
-            }
-        }
+        // eingegebener Text nach OK, "" nach Abbrechen
+        public string Prompt { get; private set; } = "";
 
         private void buttonOK_Click(System.Object sender, System.EventArgs e)
         {
@@ -84,4 +37,3 @@ namespace myCTI2
 
     }
 }
-

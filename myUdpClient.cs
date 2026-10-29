@@ -96,7 +96,7 @@ namespace myCTI2
                         TOOL.errorx("UDP Paket von nicht erlaubtem Absender " + RemoteIpEndPoint.Address.ToString() + " verworfen (Server=" + serverHost + ")");
                         continue;
                     }
-                    string returnData = Encoding.Default.GetString(receiveBytes);
+                    string returnData = TOOL.Ansi.GetString(receiveBytes);
                     RaiseSampleEvent(returnData);
                 }
                 catch (Exception e)

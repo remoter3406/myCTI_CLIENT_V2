@@ -2,7 +2,7 @@ name: Build und Test
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, net10 ]
   pull_request:
     branches: [ master ]
   workflow_dispatch:
@@ -14,11 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: microsoft/setup-msbuild@v2
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
 
-      # packages.config (WebView2) und PackageReference (Tests) in einem Schritt wiederherstellen
       - name: Build
-        run: msbuild myCTI_CLIENT.sln /restore /p:RestorePackagesConfig=true /p:Configuration=Release /v:m
+        run: dotnet build myCTI_CLIENT.sln -c Release
 
       - name: Test
         run: dotnet test myCTI.Tests\myCTI.Tests.csproj --no-build -c Release --logger "trx;LogFileName=test-results.trx"
@@ -30,12 +31,18 @@ jobs:
           name: test-results
           path: myCTI.Tests/TestResults/*.trx
 
+      # eine einzige Exe (braucht die .NET 10 Desktop Runtime auf dem Client)
+      - name: Publish
+        run: dotnet publish myCTI2.csproj -c Release -o publish
+
+      - name: Token-Platzhalter in der Exe prüfen
+        shell: pwsh
+        run: |
+          $text = [System.Text.Encoding]::Latin1.GetString([System.IO.File]::ReadAllBytes("publish/myCTI.exe"))
+          if (-not ($text -match "FKtokenFKstartFK#{40}FKtokenFKendeFK")) { throw "Token-Platzhalter fehlt in myCTI.exe - Server kann die Serveradresse nicht einsetzen" }
+
       - name: myCTI.exe hochladen
         uses: actions/upload-artifact@v4
         with:
           name: myCTI
-          path: |
-            bin/Release/myCTI.exe
-            bin/Release/myCTI.exe.config
-            bin/Release/*.dll
-            bin/Release/runtimes/**
+          path: publish/myCTI.exe

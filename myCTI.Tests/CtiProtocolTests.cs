@@ -172,7 +172,7 @@ namespace myCTI.Tests
             Assert.AreEqual("a/b:c-1.2", CtiProtocol.UrlEncodeDial("a/b:c-1.2"));
             Assert.AreEqual("%2321%23", CtiProtocol.UrlEncodeDial("#21#"));
             Assert.AreEqual("%28030%29", CtiProtocol.UrlEncodeDial("(030)"));
-            byte ae = Encoding.Default.GetBytes("ä")[0];
+            byte ae = TOOL.Ansi.GetBytes("ä")[0];
             Assert.AreEqual("%" + ae.ToString("X2"), CtiProtocol.UrlEncodeDial("ä"));
             Assert.AreEqual("", CtiProtocol.UrlEncodeDial(""));
         }
